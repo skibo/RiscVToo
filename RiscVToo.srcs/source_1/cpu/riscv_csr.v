@@ -65,7 +65,7 @@
 
 module riscv_csr #(parameter DWIDTH = 32,
                    parameter AWIDTH = 32,
-                   parameter [7 : 0] MTVEC_HI = 8'h00,
+                   parameter [31 : 0] MTVEC = 32'h0000_01c0,
                    parameter [7 : 0] HART_ID = 8'h00)
     (
      input [1 : 0]               csr_op,
@@ -242,7 +242,7 @@ module riscv_csr #(parameter DWIDTH = 32,
             mepc_reg <= exc_pc;
         else if (csr_mod && csr_reg == `CSR_M_EPC)
             mepc_reg <= (mepc_reg & ~csr_bits_clr) | csr_bits_set;
-    
+
     assign mret_pc = mepc_reg;
 
     ///// MCAUSE
@@ -260,7 +260,7 @@ module riscv_csr #(parameter DWIDTH = 32,
         else if (do_exception) begin
             mcause_exc <= exc_reason;
             mcause_intr <= exc_intr;
-        end    
+        end
 
     ///// MTVAL
     reg [AWIDTH - 1 : 0] mtval_reg;
@@ -273,16 +273,15 @@ module riscv_csr #(parameter DWIDTH = 32,
             mtval_reg <= (mtval_reg & ~csr_bits_clr) | csr_bits_set;
 
     ///// MTVEC
-    reg [7 : 0]          mtvec_hi;
-    assign mtvec = {mtvec_hi, {(AWIDTH - 17){mtvec_hi[0]}},
-                    ~mtvec_hi[0], 8'hc0};
+    reg [AWIDTH - 3 : 0] mtvec_reg;
+    assign mtvec = {mtvec_reg, 2'b00};
     always @(posedge clk)
         if (reset)
-            mtvec_hi <= MTVEC_HI;
+            mtvec_reg <= MTVEC[AWIDTH - 1 : 2];
         else if (csr_mod && csr_reg == `CSR_M_TVEC)
-            mtvec_hi <= (mtvec_hi & ~csr_bits_clr[AWIDTH - 1 : AWIDTH - 8]) |
-                        csr_bits_set[AWIDTH - 1 : AWIDTH - 8];
-    
+            mtvec_reg <= (mtvec_reg & ~csr_bits_clr[AWIDTH - 1 : 2]) |
+                         csr_bits_set[AWIDTH - 1 : 2];
+
     //////////////////// Read Mux /////////////////////////
     always @(*)
         case (csr_reg)
@@ -298,7 +297,7 @@ module riscv_csr #(parameter DWIDTH = 32,
                 csr_rd_data_p = instret_reg;
             `CSR_M_INSTRETH:
                 csr_rd_data_p = instreth_reg;
-            
+
             `CSR_M_SCRATCH:
                 csr_rd_data_p = mscratch_reg;
 
@@ -306,7 +305,7 @@ module riscv_csr #(parameter DWIDTH = 32,
                 csr_rd_data_p = `CPU_MISA;
             `CSR_M_HARTID:
                 csr_rd_data_p = {{DWIDTH - 8{1'b0}}, HART_ID};
-            
+
             `CSR_M_STATUS:
                 csr_rd_data_p = mstatus_reg;
             `CSR_M_IE:
@@ -325,5 +324,5 @@ module riscv_csr #(parameter DWIDTH = 32,
             default:
                 csr_rd_data_p = 'd0;
         endcase // case (csr_reg)
-    
+
 endmodule

@@ -35,7 +35,7 @@ module riscv_reg_file #(parameter DWIDTH = 32)
      input                   w_reg_en,
      input                   clk);
 
-`ifdef foo
+`ifdef NORAM32X1D
     //////// Behavioral model.
     
     reg [DWIDTH - 1 : 0]     regs[31 : 0];

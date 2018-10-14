@@ -75,6 +75,7 @@
 `define WFI_INSTR       32'h1050_0073
 
 // Exception Reasons
+`define EXC_INSTR_ADDR_MISALIGNED	4'd0
 `define EXC_INSTR_FAULT             4'd1
 `define EXC_ILLEGAL_INSTR           4'd2
 `define EXC_BREAKPOINT              4'd3
@@ -86,13 +87,13 @@
 
 module riscv_core #(parameter DWIDTH = 32,
                     parameter AWIDTH = 32,
-                    parameter [7 : 0] MTVEC_HI = 8'h00)
+                    parameter [31 : 0] RSTVEC = 32'h0000_0200)
     (output [AWIDTH - 1 : 0]           i_addr,
      output                            i_addr_valid,
      input [31 : 0]                    i_data,
      input                             i_data_valid,
      input                             i_fault,
-               
+
      output [AWIDTH - 1 : 0]           d_addr,
      output                            d_addr_valid,
      input [DWIDTH - 1 : 0]            d_data_rd,
@@ -110,7 +111,7 @@ module riscv_core #(parameter DWIDTH = 32,
      output reg                        inc_instret,
      output                            do_exception,
      output reg [3 : 0]                exc_reason,
-     output [AWIDTH - 1 : 0]           badaddr,
+     output reg [AWIDTH - 1 : 0]       badaddr,
      output                            badaddr_set,
      output reg                        exc_intr,
      output reg [AWIDTH - 1 : 0]       exc_pc,
@@ -155,6 +156,7 @@ module riscv_core #(parameter DWIDTH = 32,
     wire                        csr_e;
     wire                        load_unaligned;
     wire                        store_unaligned;
+    wire                        br_unaligned;
     reg                         wfi;
 
     // Memory Stage
@@ -180,17 +182,18 @@ module riscv_core #(parameter DWIDTH = 32,
     ////////////////////////// Stalls ///////////////////////////
 
     wire                        stall = mem_stall || wfi || load_bubble;
-    
+
     ///////////////////////// I-Fetch ///////////////////////////
 
     // PC register
     always @(posedge clk)
         if (reset)
-            pc <= {MTVEC_HI, {(AWIDTH - 18){MTVEC_HI[0]}}, 1'b1,
-                   MTVEC_HI[0], 8'h00};
+            pc <= RSTVEC;
         else if (!stall) begin
-            if (do_branch)
-                pc <= br_target + (i_data_valid ? 3'd4 : 3'd0);
+            if (do_exception)
+                pc <= mtvec;
+            else if (do_branch)
+                pc <= {br_target[AWIDTH - 1 : 2] + i_data_valid, 2'b00};
             else if (i_data_valid)
                 pc <= pc + 3'd4;
         end
@@ -204,7 +207,8 @@ module riscv_core #(parameter DWIDTH = 32,
     assign i_stall = i_active && !i_data_valid && !i_fault;
 
     assign i_addr_valid = !stall && !i_stall && !reset;
-    assign i_addr = do_branch ? br_target : pc;
+    assign i_addr = do_exception ? mtvec :
+                    (do_branch ? {br_target[AWIDTH - 1 : 2], 2'b00} : pc);
 
     // Allow last instruction before i_fault to get through EX stage.
     always @(posedge clk)
@@ -215,17 +219,18 @@ module riscv_core #(parameter DWIDTH = 32,
 
     ///////////////////////// Decode / Reg Rd ////////////////////
 
-    assign  instr_d_valid = i_data_valid && !do_branch && !squash_d;
+    assign  instr_d_valid = i_data_valid && !do_branch && !do_exception &&
+                            !squash_d;
 
     always @(posedge clk)
         if (reset || (i_data_valid && !stall))
             squash_d <= 0;
-        else if (do_branch && !stall && !i_data_valid)
+        else if ((do_branch || do_exception) && !stall && !i_data_valid)
             squash_d <= 1;
 
     assign  a_reg_num_d = i_data[19 : 15];
     assign  b_reg_num_d = i_data[24 : 20];
-    
+
     riscv_reg_file #(.DWIDTH(DWIDTH))
         regfile(.a_reg_data(a_regf_rd),
                 .b_reg_data(b_regf_rd),
@@ -240,7 +245,7 @@ module riscv_core #(parameter DWIDTH = 32,
     always @(posedge clk)
         if (i_addr_valid)
             pc_d <= i_addr;
-    
+
     // Short-circuit logic.
     wire    bypass_a32 = w_reg_en_e && instr_d_valid &&
                 w_reg_num_e == a_reg_num_d;
@@ -259,7 +264,7 @@ module riscv_core #(parameter DWIDTH = 32,
                 a_reg_r <= w_reg_data_m;
             else
                 a_reg_r <= a_regf_rd;
-        
+
             if (bypass_b32)
                 b_reg_r <= w_reg_data_e;
             else if (bypass_b42)
@@ -286,9 +291,9 @@ module riscv_core #(parameter DWIDTH = 32,
                          {1'b0, `OP_ALUR} &&
                          i_data[6 : 0] != `OP_FENCE &&
                          i_data[6 : 0] != `OP_SYS;
-    
+
     ////////////////////// Exec Stage //////////////////////////
-    
+
     always @(posedge clk)
         if (!stall)
             pc_e <= pc_d;
@@ -397,12 +402,12 @@ module riscv_core #(parameter DWIDTH = 32,
          ((instr_e[14 : 12] == `LD_W && d_byte_addr[1 : 0] != 2'b00) ||
           ((instr_e[14 : 12] ==  `LD_H || instr_e[14 : 12] == `LD_HU) &&
            d_byte_addr[0] != 1'b0));
-    
+
     assign store_unaligned = store_e && !stall &&
          ((instr_e[14 : 12] == `ST_W && d_byte_addr[1 : 0] != 2'b00) ||
           (instr_e[14 : 12] == `ST_H && d_byte_addr[0] != 1'b0));
 
-         
+
     // Byte-enables and write data.  XXX: hard-coded 32-bit.
     always @(*)
         case (instr_e[14 : 12])
@@ -425,43 +430,38 @@ module riscv_core #(parameter DWIDTH = 32,
             end
         endcase
 
-    // Branch target XXX: throw exception if br_target[1 : 0] is set.
+    // Branch target:
     always @(*) begin
-        if (do_exception)
-            br_target = mtvec;
-        else
-            case (instr_e[6 : 0])
-                `OP_JAL:
-                    br_target = pc_e +
-                                {{(AWIDTH - 19){instr_e[31]}},
-                                 instr_e[31],
-                                 instr_e[19 : 12],
-                                 instr_e[20],
-                                 instr_e[30 : 21], 1'b0};
-                `OP_JALR: begin
-                    br_target = a_reg_r +
-                                {{(AWIDTH - 12){instr_e[31]}},
-                                 instr_e[31 : 20]};
-                    br_target[0] = 1'b0;
-                end
-                `OP_BR:
-                    br_target = pc_e +
-                                {{(AWIDTH - 13){instr_e[31]}},
-                                 instr_e[31],
-                                 instr_e[7],
-                                 instr_e[30 : 25],
-                                 instr_e[11 : 8], 1'b0};
-                `OP_SYS:
-                    br_target = mret_pc; // MRET
-                default:
-                    br_target = {AWIDTH{1'bX}};
-            endcase
+        case (instr_e[6 : 0])
+            `OP_JAL:
+                br_target = pc_e +
+                            {{(AWIDTH - 19){instr_e[31]}},
+                             instr_e[31],
+                             instr_e[19 : 12],
+                             instr_e[20],
+                             instr_e[30 : 21], 1'b0};
+            `OP_JALR: begin
+                br_target = a_reg_r +
+                            {{(AWIDTH - 12){instr_e[31]}},
+                             instr_e[31 : 20]};
+                br_target[0] = 1'b0;
+            end
+            `OP_BR:
+                br_target = pc_e +
+                            {{(AWIDTH - 13){instr_e[31]}},
+                             instr_e[31],
+                             instr_e[7],
+                             instr_e[30 : 25],
+                             instr_e[11 : 8], 1'b0};
+            `OP_SYS:
+                br_target = mret_pc; // MRET
+            default:
+                br_target = {AWIDTH{1'bX}};
+        endcase
     end
 
     always @(*)
-        if (do_exception)
-            do_branch = 1;
-        else if (instr_e_valid)
+        if (instr_e_valid)
             case (instr_e[6 : 0])
                 `OP_BR:
                     // Condition branch tests
@@ -492,7 +492,9 @@ module riscv_core #(parameter DWIDTH = 32,
             do_branch = 0;
 
     assign do_mret = instr_e_valid && !stall && instr_e == `MRET_INSTR;
-    
+
+    assign br_unaligned = do_branch && br_target[1 : 0] != 2'b00;
+
     // CSR Access instructions.
     assign csr_e = instr_e_valid && instr_e[6 : 0] == `OP_SYS &&
                    instr_e[14 : 12] != 3'b000;
@@ -501,7 +503,7 @@ module riscv_core #(parameter DWIDTH = 32,
     assign csr_wr_data = instr_e[14] ?
                          {{DWIDTH - 5{1'b0}}, instr_e[19 : 15]} : a_reg_r;
     assign csr_reg = instr_e[31 : 20];
-    
+
     ///////////////////////// Mem Stage /////////////////////////
 
     always @(posedge clk)
@@ -620,7 +622,7 @@ module riscv_core #(parameter DWIDTH = 32,
             load_hazard_b_em <= 1;
 
     assign load_bubble = load_hazard_a_em || load_hazard_b_em;
-    
+
     //////////////// Exception Handling /////////////////
 
     always @(posedge clk)
@@ -637,11 +639,11 @@ module riscv_core #(parameter DWIDTH = 32,
 
     wire ecall_e = instr_e_valid && instr_e == `ECALL_INSTR && !stall;
     wire ebreak_e = instr_e_valid && instr_e == `EBREAK_INSTR && !stall;
-    
+
     assign do_exception = !stall && (ecall_e || ebreak_e || instr_e_ill ||
                                      load_unaligned || store_unaligned ||
-                                     i_fault_1 || d_fault_l || d_fault_s ||
-                                     interrupt);
+                                     br_unaligned || i_fault_1 ||
+                                     d_fault_l || d_fault_s || interrupt);
 
     // Implement priority coding of exceptions.  Determine what EPC
     // should be.  CSR block captures these.
@@ -650,7 +652,9 @@ module riscv_core #(parameter DWIDTH = 32,
         exc_reason = 4'hf; // XXX: no default non-reason?
         exc_pc = pc_e;
 
-        if (load_unaligned)
+        if (br_unaligned)
+            exc_reason = `EXC_INSTR_ADDR_MISALIGNED;
+        else if (load_unaligned)
             exc_reason = `EXC_LOAD_ADDR_MISALIGNED;
         else if (store_unaligned)
             exc_reason = `EXC_STORE_ADDR_MISALIGNED;
@@ -677,17 +681,23 @@ module riscv_core #(parameter DWIDTH = 32,
         else if (ebreak_e)
             exc_reason = `EXC_BREAKPOINT;
     end
-    
-    assign badaddr_set = load_unaligned || store_unaligned ||
+
+    assign badaddr_set = br_unaligned || load_unaligned || store_unaligned ||
                          d_fault_l || d_fault_s;
-    assign badaddr = ((d_fault_l || d_fault_s) ? d_byte_addr_m : d_byte_addr);
+    always @(*)
+        if (br_unaligned)
+            badaddr = br_target;
+        else if (d_fault_l || d_fault_s)
+            badaddr = d_byte_addr_m;
+        else
+            badaddr = d_byte_addr;
 
     always @(posedge clk)
         if (reset || do_exception || interrupt)
             wfi <= 0;
         else if (!stall && instr_d_valid && i_data == `WFI_INSTR)
             wfi <= 1;
- 
+
 `ifdef verbose
     always @(negedge clk)
         $display("[%t] ia=%h | idv=%b id=%h | iev=%b ie=%h | rwe=%b drv=%b",

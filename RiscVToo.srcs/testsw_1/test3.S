@@ -1,29 +1,28 @@
-
         /* Mostly test interrupts and exceptions. */
-        
+
         .text
         . = 0x1c0
 exception:
         j       exception2
 
         . = 0x200
-	.global _start
+        .global _start
 _start:
         li      a0, 0x88888888
         sw      a0, 0(zero)
 
-	li	a0, 100
-	sw	a0, 0(a0)
-1:      
-	nop
-	nop
-	nop
+        li	a0, 100
+        sw	a0, 0(a0)
+1:
+        nop
+        nop
+        nop
 
-	lw	a1, 0(a0)
-	lw	a2, 0(a1)
-	lw	a3, 0(a2)
+        lw	a1, 0(a0)
+        lw	a2, 0(a1)
+        lw	a3, 0(a2)
 
-	sw	a3, 4(zero)
+        sw	a3, 4(zero)
 
         /* Enable interrupts. (Set MIE in MSTATUS and MEIE in MIE. */
         csrrs   a1, mstatus, 8
@@ -33,7 +32,7 @@ _start:
         sw      a1, 4(zero)
 
         lw      a2, 0(zero)
-	csrrw	a0, mscratch, a2
+        csrrw	a0, mscratch, a2
         sw      a2, 8(zero)
         csrrw   a2, mscratch, a2
         sw      a2, 12(zero)
@@ -66,9 +65,9 @@ d_fault:
         bne     a7, a0, fail
 
         /* Store alignment */
-alg_st: 
+alg_st:
         sw      a0, 1(zero)
-        
+
         li      a1, 6
         bne     a4, a1, fail
         la      a1, alg_st
@@ -76,16 +75,43 @@ alg_st:
         li      a1, 1
         bne     a7, a1, fail
 
-alg_ld: 
+alg_ld:
         /* Load alignment */
         lw      a1, 1(zero)
-        
+
         li      a1, 4
         bne     a4, a1, fail
         la      a1, alg_ld
         bne     a6, a1, fail
         li      a1, 1
         bne     a7, a1, fail
+
+alg_jmp:
+        /* Unaligned branch or jump */
+        j       alg_jmp - 2
+
+        bne     a4, zero, fail
+        la      a1, alg_jmp
+        bne     a6, a1, fail
+
+        la      a4, alg_jmp
+        addi    a4, a4, 2
+alg_jmp2:
+        jr      a4
+
+        bne     a4, zero, fail
+        la      a1, alg_jmp2
+        bne     a6, a1, fail
+
+        li      a6, 0
+        bne     zero, zero, 1f + 2	/* should not trap */
+1:
+        bne     a6, zero, fail
+alg_jmp3:
+        beq     zero, zero, 1b + 2	/* should trap */
+        bne     a4, zero, fail
+        la      a1, alg_jmp3
+        bne     a6, a1, fail
 
         /* ecall */
 ecall:
@@ -118,11 +144,11 @@ illi:
         /* Check I-fault. */
         li      a0, 0x9999999c
         jr      a0
-i_fault_ret:    
+i_fault_ret:
         li      a1, 1
         bne     a4, a1, fail
         bne     a6, a0, fail
-        
+
         sw      a0, 20(zero)
 done:
         /* Success (of some sorts) */
@@ -167,4 +193,3 @@ exception2:
         nop
         nop
         nop
-        

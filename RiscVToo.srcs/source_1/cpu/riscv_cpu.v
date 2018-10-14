@@ -27,7 +27,8 @@
 
 module riscv_cpu #(parameter DWIDTH = 32,
                    parameter AWIDTH = 32,
-                   parameter [7 : 0] MTVEC_HI = 8'h00,
+                   parameter [31 : 0] MTVEC = 32'h0000_01c0,
+                   parameter [31 : 0] RSTVEC = 32'h0000_0200,
                    parameter [7 : 0] HART_ID = 8'h00)
     (output [AWIDTH - 1 : 0]       i_addr,
      output                        i_addr_valid,
@@ -70,7 +71,7 @@ module riscv_cpu #(parameter DWIDTH = 32,
     
     riscv_core #(.AWIDTH(AWIDTH),
                  .DWIDTH(DWIDTH),
-                 .MTVEC_HI(MTVEC_HI))
+                 .RSTVEC(RSTVEC))
     riscv_core_0(
                  .i_addr(i_addr),
                  .i_addr_valid(i_addr_valid),
@@ -111,7 +112,7 @@ module riscv_cpu #(parameter DWIDTH = 32,
 
     riscv_csr #(.DWIDTH(DWIDTH),
                 .AWIDTH(AWIDTH),
-                .MTVEC_HI(MTVEC_HI),
+                .MTVEC(MTVEC),
                 .HART_ID(HART_ID))
     riscv_csr_0(
                 .csr_op(csr_op),
