@@ -140,6 +140,8 @@ illi:
         bne     a4, a1, fail
         la      a1, illi
         bne     a6, a1, fail
+        li      a1, 0x02b585b3
+        bne     a7, a1, fail
 
         /* Check I-fault. */
         li      a0, 0x9999999c

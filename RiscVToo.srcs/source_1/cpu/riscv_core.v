@@ -683,12 +683,14 @@ module riscv_core #(parameter DWIDTH = 32,
     end
 
     assign badaddr_set = br_unaligned || load_unaligned || store_unaligned ||
-                         d_fault_l || d_fault_s;
+                         instr_e_ill || d_fault_l || d_fault_s;
     always @(*)
         if (br_unaligned)
             badaddr = br_target;
         else if (d_fault_l || d_fault_s)
             badaddr = d_byte_addr_m;
+        else if (instr_e_ill)
+            badaddr = instr_e;
         else
             badaddr = d_byte_addr;
 

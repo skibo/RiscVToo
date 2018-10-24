@@ -44,7 +44,7 @@
 `define CSR_M_SCRATCH   12'h340
 `define CSR_M_EPC       12'h341
 `define CSR_M_CAUSE     12'h342
-`define CSR_M_TVAL      12'h343     // XXX was mbadaddr, not fully implemented
+`define CSR_M_TVAL      12'h343
 `define CSR_M_IP        12'h344
 
 // Machine Timers and Counters

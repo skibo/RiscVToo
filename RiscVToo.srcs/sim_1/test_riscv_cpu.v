@@ -32,7 +32,7 @@ module test_riscv_cpu;
         IMEM_SIZE = 2048,
         DMEM_DELAYS = 1,
         IMEM_DELAYS = 1,
-        MEM_INIT_FILE = "test1.mem",
+        MEM_INIT_FILE = "test3.mem",
         IBUS_VERBOSE = 0;
 
     wire [31 : 0]   i_addr;
