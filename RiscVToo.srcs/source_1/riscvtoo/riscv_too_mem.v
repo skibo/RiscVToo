@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 //
-// Copyright (c) 2018 Thomas Skibo. <Thomas@Skibo.net>
+// Copyright (c) 2018-2019 Thomas Skibo. <Thomas@Skibo.net>
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -25,9 +25,10 @@
 // SUCH DAMAGE.
 //
 
+(* keep_hierarchy = "yes" *)
 module riscv_too_mem #(parameter integer DWIDTH = 32,
                        parameter integer MEMSIZE = 16384,
-                       parameter integer AWIDTH = $clog2(MEMSIZE),
+                       localparam integer AWIDTH = $clog2(MEMSIZE),
                        parameter MEM_INIT_FILE = "bootrom.mem")
     (
      input [AWIDTH - 1 : 0]       i_addr,
@@ -43,12 +44,12 @@ module riscv_too_mem #(parameter integer DWIDTH = 32,
 
      input                        clk);
 
+    localparam LOWBIT = $clog2(DWIDTH) - 3;
+
     (* ram_style = "block" *)
     reg [DWIDTH - 1 : 0]          mem [(MEMSIZE * 8 / DWIDTH) - 1 : 0];
 
     initial $readmemh(MEM_INIT_FILE, mem);
-
-    parameter LOWBIT = $clog2(DWIDTH) - 3;
 
     always @(posedge clk)
         if (i_addr_valid)
