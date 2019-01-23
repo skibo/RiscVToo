@@ -55,18 +55,16 @@ module riscv_too_mem #(parameter integer DWIDTH = 32,
         if (i_addr_valid)
             i_data <= mem[i_addr[AWIDTH - 1 : LOWBIT]];
 
-    generate
-        genvar i;
-        for (i = 0; i < DWIDTH / 8; i = i + 1) begin:byte_ln
-            always @(posedge clk)
-                if (d_addr_valid) begin
-                    if (d_we && d_be[i])
-                        mem[d_addr[AWIDTH - 1 : LOWBIT]][i * 8 +: 8] <=
-                            d_data_wr[i * 8 +: 8];
-                    d_data_rd[i * 8 +: 8] <=
-                        mem[d_addr[AWIDTH - 1 : LOWBIT]][i * 8 +: 8];
-                end
+    always @(posedge clk)
+        if (d_addr_valid) begin:byteln
+            integer i;
+
+            for (i = 0; i < DWIDTH / 8; i = i + 1)
+                if (d_we && d_be[i])
+                    mem[d_addr[AWIDTH - 1 : LOWBIT]][i * 8 +: 8] <=
+                        d_data_wr[i * 8 +: 8];
+
+            d_data_rd <= mem[d_addr[AWIDTH - 1 : LOWBIT]];
         end
-    endgenerate
 
 endmodule // riscv_too_mem
