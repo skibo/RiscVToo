@@ -3,7 +3,11 @@ ifndef RISCV
 $(error RISCV must be set to point to RiscV toolchain)
 endif
 
-CROSS_COMPILE=$(RISCV)/bin/riscv64-unknown-linux-gnu-
+ifneq (,$(wildcard $(RISCV)/bin/riscv32-unknown-elf-gcc))
+	CROSS_COMPILE=$(RISCV)/bin/riscv32-unknown-elf-
+else
+	CROSS_COMPILE=$(RISCV)/bin/riscv64-unknown-linux-gnu-
+endif
 BIN2HEX=/usr/bin/hexdump -v -e '/4 "%08X\n"'
 
 TESTS=test_too test1 test2 test3 testcsr
