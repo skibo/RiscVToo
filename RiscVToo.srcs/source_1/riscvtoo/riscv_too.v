@@ -40,10 +40,10 @@ module riscv_too #(
                    parameter integer MEMSIZE = 16384,
                    parameter integer ROMSIZE = 8192,
                    parameter MEM_INIT_FILE = "bootrom.mem",
-                   
+
                    // Hart ID of this CPU
                    parameter [7 : 0] HART_ID = 8'h00)
-    ( 
+    (
      // AXI4 Master interface
      input                                 M_AXI_ACLK,
      input                                 M_AXI_ARESETN,
@@ -86,12 +86,13 @@ module riscv_too #(
      input [C_M00_AXI_ID_WIDTH-1 : 0]      M_AXI_BID,
 
      // External IRQ signal
+      (* X_INTERFACE_INFO = "xilinx.com:interface:mbinterrupt:1.0 intr INTERRUPT" *)
      input                                 extirq
      );
 
     parameter integer   AWIDTH = 32;
     parameter integer   DWIDTH = 32;
-    
+
     // Convenience signal names.
     wire    clk = M_AXI_ACLK;
     wire    reset = ~M_AXI_ARESETN;
@@ -101,7 +102,7 @@ module riscv_too #(
     wire [DWIDTH -1 : 0]        i_data;
     wire                        i_data_valid;
     wire                        i_fault;
-    
+
     wire [AWIDTH - 1 : 0]       d_addr;
     wire                        d_addr_valid;
     wire [DWIDTH - 1 : 0]       d_data_rd;
@@ -121,7 +122,7 @@ module riscv_too #(
         .i_data(i_data),
         .i_data_valid(i_data_valid),
         .i_fault(i_fault),
-        
+
         .d_addr(d_addr),
         .d_addr_valid(d_addr_valid),
         .d_data_rd(d_data_rd),
@@ -133,7 +134,7 @@ module riscv_too #(
         .d_fault(d_fault),
 
         .extirq(extirq),
-        
+
         .reset(reset),
         .clk(clk)
     );
@@ -149,7 +150,7 @@ module riscv_too #(
                     .i_addr(i_addr),
                     .i_addr_valid(i_addr_valid),
                     .i_data(i_data),
-                    
+
                     // Data port
                     .d_addr(d_addr),
                     .d_addr_valid(d_addr_valid),
@@ -165,7 +166,7 @@ module riscv_too #(
                      .DWIDTH(DWIDTH),
                      .MEMSIZE(MEMSIZE),
                      .ROMSIZE(ROMSIZE))
-        
+
     riscv_too_glue_0(
              // AXI master interface
              .M_AXI_ACLK(M_AXI_ACLK),
@@ -207,12 +208,12 @@ module riscv_too #(
              .M_AXI_BVALID(M_AXI_BVALID),
              .M_AXI_BREADY(M_AXI_BREADY),
              .M_AXI_BID(M_AXI_BID),
-        
+
              .i_addr(i_addr),
              .i_addr_valid(i_addr_valid),
              .i_data_valid(i_data_valid),
              .i_fault(i_fault),
-        
+
              .d_addr(d_addr),
              .d_addr_valid(d_addr_valid),
              .d_data_rd(d_data_rd),
@@ -225,6 +226,5 @@ module riscv_too #(
              .d_wr_done(d_wr_done),
              .d_fault(d_fault)
     );
-    
-endmodule // riscv_too
 
+endmodule // riscv_too
