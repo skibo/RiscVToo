@@ -35,32 +35,32 @@ exception:
         sw      t0, 52(zero)
         nop
         mret
-        
+
 1:
         j       1b
-        
+
         . = 0x200
-        
-	.global _start
+
+        .global _start
 _start:
         li      a1, 0xdeadbeef
         li      a2, 0xbeefbabe
 
-	/* See ISA, Vendor ID, Architecture ID, Implemention ID. */
-	csrr	s0, misa
-	sw	s0, 0(zero)
+        /* See ISA, Vendor ID, Architecture ID, Implemention ID. */
+        csrr	s0, misa
+        sw	s0, 0(zero)
         csrr    s0, mvendorid
         sw      s0, 4(zero)
         csrr    s0, marchid
         sw      s0, 8(zero)
-	csrr	s0, mimpid
-	sw	s0, 12(zero)
+        csrr	s0, mimpid
+        sw	s0, 12(zero)
 
-	/* Write to mscratch. */
-	csrrw	s0, mscratch, a1
-	nop
-	nop
-	nop
+        /* Write to mscratch. */
+        csrrw	s0, mscratch, a1
+        nop
+        nop
+        nop
 
         /* No bypass */
         csrrw   s0, mscratch, a2
@@ -91,12 +91,12 @@ _start:
         sw      s3, 20(zero)
         sw      s3, 20(zero)
         bne     s3, a2, fail
-        
+
         csrrw   s2, mscratch, s3
         nop
         sw      s2, 24(zero)
         bne     s2, a1, fail
-        
+
         csrrw   s2, mscratch, s2
         sw      s2, 28(zero)
         bne     s2, s3, fail
@@ -112,24 +112,17 @@ _start:
         sw      s2, 44(zero)
 
         /* Check mtvec register. */
-	li	a0, -1
+        li	a0, -1
         csrrw   a1, mtvec, a0
         li      a2, 0x1c0
         bne     a1, a2, fail
         li      a0, 0x20000000
         csrrw   a1, mtvec, a0
-        li      a2, 0xfffffec0
+        li      a2, 0xfffffffc
         bne     a1, a2, fail
-        li      a0, 0x01000000
-        csrrw   a1, mtvec, a0
-        li      a2, 0x200001c0
-        bne     a1, a2, fail
-        csrrw   a1, mtvec, zero
-        li      a2, 0x01fffec0
-        bne     a1, a2, fail
-        csrr    a1, mtvec
-        li      a2, 0x1c0
-        bne     a1, a2, fail
+        li	a2, 0x1c0
+        csrrw   a1, mtvec, a2
+        bne     a1, a0, fail
 
         /* Unaligned load. */
         lw      t0, 1(zero)
@@ -159,4 +152,3 @@ fail:
 
         j       1b
         nop
-        
