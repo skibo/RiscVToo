@@ -49,10 +49,8 @@
 
 // Machine Timers and Counters
 `define CSR_M_CYCLE     12'hB00
-`define CSR_M_TIME      12'hB01     // XXX removed in v1.10??
 `define CSR_M_INSTRET   12'hB02
 `define CSR_M_CYCLEH    12'hB80
-`define CSR_M_TIMEH     12'hB81
 `define CSR_M_INSTRETH  12'hB82
 
 `define CPU_MISA        32'h4000_0100   // 32I
@@ -125,27 +123,6 @@ module riscv_csr #(parameter DWIDTH = 32,
         else
             cycleh_reg <= cycleh_reg + cycle_c;
 
-    // RDTIME registers
-    reg [DWIDTH - 1 : 0]         time_reg;
-    reg [DWIDTH - 1 : 0]         timeh_reg;
-    wire                         time_c = time_reg == {DWIDTH{1'b1}};
-    always @(posedge clk)
-        if (reset)
-            time_reg <= 'd0;
-        else if (csr_mod && csr_reg == `CSR_M_TIME)
-            time_reg <= ((time_reg + 1'b1) & ~csr_bits_clr) | csr_bits_set;
-        else
-            time_reg <= time_reg + 1'b1;
-
-    always @(posedge clk)
-        if (reset)
-            timeh_reg <= 'd0;
-        else if (csr_mod && csr_reg == `CSR_M_TIMEH)
-            timeh_reg <= ((timeh_reg + time_c) & ~csr_bits_clr) |
-                         csr_bits_set;
-        else
-            timeh_reg <= timeh_reg + time_c;
-
     // RDINSTRET registers
     reg [DWIDTH - 1 : 0]         instret_reg;
     reg [DWIDTH - 1 : 0]         instreth_reg;
@@ -201,7 +178,7 @@ module riscv_csr #(parameter DWIDTH = 32,
             mpie <= (mpie && !csr_bits_clr[7]) || csr_bits_set[7];
 
     // MIE register
-    reg             meie; // External Interrupt Enable
+    reg                 meie; // External Interrupt Enable
     reg                 mtie; // Timer Interrupt Enable
     reg                 msie; // Software Interrupt Enable
     wire [DWIDTH - 1 : 0] mie_reg = {{(DWIDTH - 12){1'b0}},
@@ -218,8 +195,8 @@ module riscv_csr #(parameter DWIDTH = 32,
             msie <= (msie && !csr_bits_clr[3]) || csr_bits_set[3];
         end
 
-    wire    meip = extirq; // XXX:
-    wire    mtip = 0; // XXX: Implement timecmp later
+    wire    meip = extirq;
+    wire    mtip = 0; // XXX: we haven't implemented timecmp for now.
     reg     msip;
     wire [DWIDTH - 1 : 0] mip_reg = {{(DWIDTH - 12){1'b0}},
                                      meip, 3'b000, mtip, 3'b000, msip, 3'b000};
@@ -229,8 +206,7 @@ module riscv_csr #(parameter DWIDTH = 32,
         else if (csr_mod && csr_reg == `CSR_M_IP)
             msip <= (msip && !csr_bits_clr[3]) || csr_bits_set[3];
 
-    // XXX: extirq should come from platform specific interrupt controller
-    assign interrupt = mie && ((extirq && meie) || (mtie && mtip) ||
+    assign interrupt = mie && ((meie && meip) || (mtie && mtip) ||
                                (msie && msip));
 
     ///// MEPC
@@ -289,10 +265,6 @@ module riscv_csr #(parameter DWIDTH = 32,
                 csr_rd_data_p = cycle_reg;
             `CSR_M_CYCLEH:
                 csr_rd_data_p = cycleh_reg;
-            `CSR_M_TIME:
-                csr_rd_data_p = time_reg;
-            `CSR_M_TIMEH:
-                csr_rd_data_p = timeh_reg;
             `CSR_M_INSTRET:
                 csr_rd_data_p = instret_reg;
             `CSR_M_INSTRETH:
