@@ -46,6 +46,7 @@ module riscv_cpu #(parameter DWIDTH = 32,
      input                         d_wr_done,
      input                         d_fault,
 
+     input                         timerint,
      input                         extirq,
 
      input                         reset,
@@ -130,6 +131,7 @@ module riscv_cpu #(parameter DWIDTH = 32,
                 .mtvec(mtvec),
                 .do_mret(do_mret),
                 .interrupt(interrupt),
+                .timerint(timerint),
                 .extirq(extirq),
                 .mret_pc(mret_pc),
         

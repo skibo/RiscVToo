@@ -26,21 +26,25 @@
 //
 
 module riscv_too_glue #(
-                        parameter integer C_M_AXI_BURST_LEN = 4,
-                        parameter integer C_M_AXI_ID_WIDTH = 1,
-                        parameter integer C_M_AXI_ADDR_WIDTH = 32,
-                        parameter integer C_M_AXI_DATA_WIDTH = 32,
-                        parameter integer C_M_AXI_AWUSER_WIDTH = 0,
-                        parameter integer C_M_AXI_ARUSER_WIDTH = 0,
-                        parameter integer C_M_AXI_WUSER_WIDTH = 0,
-                        parameter integer C_M_AXI_RUSER_WIDTH = 0,
-                        parameter integer C_M_AXI_BUSER_WIDTH = 0,
+                        parameter C_M_AXI_BURST_LEN = 4,
+                        parameter C_M_AXI_ID_WIDTH = 1,
+                        parameter C_M_AXI_ADDR_WIDTH = 32,
+                        parameter C_M_AXI_DATA_WIDTH = 32,
+                        parameter C_M_AXI_AWUSER_WIDTH = 0,
+                        parameter C_M_AXI_ARUSER_WIDTH = 0,
+                        parameter C_M_AXI_WUSER_WIDTH = 0,
+                        parameter C_M_AXI_RUSER_WIDTH = 0,
+                        parameter C_M_AXI_BUSER_WIDTH = 0,
 
-                        parameter integer AWIDTH = 32,
-                        parameter integer DWIDTH = 32,
+                        parameter AWIDTH = 32,
+                        parameter DWIDTH = 32,
 
-                        parameter integer MEMSIZE = 16384,
-                        parameter integer ROMSIZE = 8192)
+                        parameter MEMSIZE = 16384,
+                        parameter ROMSIZE = 8192,
+
+                        parameter LOCIO_ADDR = 'h2_0000,
+                        parameter LOCIO_SIZE = 'h1_0000,
+                        parameter LOCIO_AWIDTH = 16)
     (
      input                                   M_AXI_ACLK,
      input                                   M_AXI_ARESETN,
@@ -87,6 +91,13 @@ module riscv_too_glue #(
      output reg                              M_AXI_BREADY,
      input [C_M_AXI_ID_WIDTH-1 : 0]          M_AXI_BID,
 
+     // Local I/O interface
+     output [LOCIO_AWIDTH - 1 : 0]           locio_addr,
+     output                                  locio_addr_valid,
+     output [DWIDTH - 1 : 0]                 locio_data_wr,
+     output                                  locio_wr,
+     input [DWIDTH - 1 : 0]                  locio_data_rd,
+
      // Monitor cpu I-bus
      input [AWIDTH - 1 : 0]                  i_addr,
      input                                   i_addr_valid,
@@ -110,8 +121,8 @@ module riscv_too_glue #(
     // Fixed AXI write signals.
     assign M_AXI_AWID = 0;
     assign M_AXI_AWLEN = 8'd0;		// single word writes
-    assign M_AXI_AWSIZE = 3'b010; 	// 4 bytes per clock
-    assign M_AXI_AWBURST = 2'b01; 	// INCR
+    assign M_AXI_AWSIZE = 3'b010;   // 4 bytes per clock
+    assign M_AXI_AWBURST = 2'b01;   // INCR
     assign M_AXI_AWLOCK = 1'b0;
     assign M_AXI_AWCACHE = 4'b0000; // normal non-cacheable non-bufferable
     assign M_AXI_AWPROT = 3'd0;
@@ -119,9 +130,9 @@ module riscv_too_glue #(
 
     // Fixed AXI read channel signals.
     assign M_AXI_ARID = 0;
-    assign M_AXI_ARSIZE = 3'b010; 	// 4 bytes per clock
+    assign M_AXI_ARSIZE = 3'b010;   // 4 bytes per clock
     assign M_AXI_ARLEN = 8'd0;		// single word reads
-    assign M_AXI_ARBURST = 2'b01; 	// INCR
+    assign M_AXI_ARBURST = 2'b01;   // INCR
     assign M_AXI_ARLOCK = 1'b0;
     assign M_AXI_ARCACHE = 4'b0000; // normal non-cacheable non-bufferable
     assign M_AXI_ARPROT = 3'd0;
@@ -137,7 +148,7 @@ module riscv_too_glue #(
             i_data_valid <= 0;
         else if (i_addr_valid)
             i_data_valid <= i_addr < MEMSIZE;
-    
+
     // Fault any instruction access outsize of onboard mem.
     always @(posedge clk)
         if (reset)
@@ -153,10 +164,27 @@ module riscv_too_glue #(
         else
             d_data_ismem <= d_addr_ismem && !d_we;
 
-    assign d_we_mem = d_addr_valid && d_we &&
-                      d_addr >= ROMSIZE && d_addr < MEMSIZE;
+    assign d_we_mem = d_addr_ismem && d_we && d_addr >= ROMSIZE;
 
-    assign d_data_rd = d_data_ismem ? d_data_rd_mem : M_AXI_RDATA;
+    wire	d_addr_islocio = d_addr_valid &&
+            (d_addr >= LOCIO_ADDR && d_addr < LOCIO_ADDR + LOCIO_SIZE);
+    assign  locio_wr = d_addr_islocio && d_we;
+    assign  locio_data_wr = d_data_wr;
+    assign  locio_addr = d_addr[LOCIO_AWIDTH - 1 : 0];
+    assign  locio_addr_valid = d_addr_islocio;
+
+    reg     d_data_islocio;
+    always @(posedge clk)
+        if (reset)
+            d_data_islocio <= 0;
+        else
+            d_data_islocio <= d_addr_islocio && !d_we;
+
+    wire	d_addr_isaxi = d_addr_valid && !d_addr_ismem && !d_addr_islocio;
+
+    // Read mux
+    assign d_data_rd = d_data_ismem ? d_data_rd_mem :
+                       (d_data_islocio ? locio_data_rd :  M_AXI_RDATA);
 
     reg     d_wr_done_mem;
     always @(posedge clk)
@@ -171,6 +199,13 @@ module riscv_too_glue #(
             d_wr_rom_fault <= 0;
         else
             d_wr_rom_fault <= d_addr_ismem && d_we && d_addr < ROMSIZE;
+
+    reg     d_wr_done_locio;
+    always @(posedge clk)
+        if (reset)
+            d_wr_done_locio <= 0;
+        else
+            d_wr_done_locio <= d_addr_islocio && d_we;
 
     // AXI State machines handle data reads and writes one word at a time.
 
@@ -191,34 +226,34 @@ module riscv_too_glue #(
         else
             case (rsm)
                 RSM_IDLE:
-                    if (d_addr_valid && !d_we && !d_addr_ismem) begin
+                    if (d_addr_valid && !d_we && d_addr_isaxi) begin
                         M_AXI_ARADDR <= d_addr;
                         M_AXI_ARVALID <= 1;
                         rsm <= RSM_RADDR;
                     end
-                
+
                 RSM_RADDR:
                     if (M_AXI_ARREADY) begin
                         M_AXI_ARVALID <= 0;
                         M_AXI_RREADY <= 1;
                         rsm <= RSM_RDATA;
                     end
-                
+
                 RSM_RDATA:
                     if (M_AXI_RVALID && M_AXI_RLAST) begin
                         M_AXI_RREADY <= 0;
                         rsm <= RSM_IDLE;
                     end
-                
+
             endcase
 
-    assign d_data_rd_valid = d_data_ismem ||
-                             ((rsm == RSM_RDATA) && M_AXI_RVALID && M_AXI_RLAST);
+    assign d_data_rd_valid = d_data_ismem || d_data_islocio ||
+                        ((rsm == RSM_RDATA) && M_AXI_RVALID && M_AXI_RLAST);
 
     wire d_rd_fault = (rsm == RSM_RDATA) && M_AXI_RVALID && M_AXI_RRESP != 2'b00;
 
     // Register write data and be for AXI transactions
-    reg [DWIDTH - 1 : 0] 		d_data_wr_1;
+    reg [DWIDTH - 1 : 0]        d_data_wr_1;
     reg [DWIDTH / 8 - 1 : 0]    d_be_1;
     always @(posedge clk)
         if (d_addr_valid && d_we) begin
@@ -247,12 +282,12 @@ module riscv_too_glue #(
         else
             case (wsm)
                 WSM_IDLE:
-                    if (d_addr_valid && d_we && !d_addr_ismem) begin
+                    if (d_addr_valid && d_we && d_addr_isaxi) begin
                         M_AXI_AWADDR <= d_addr;
                         M_AXI_AWVALID <= 1;
                         wsm <= WSM_WADDR;
                     end
-                
+
                 WSM_WADDR:
                     if (M_AXI_AWREADY) begin
                         M_AXI_AWVALID <= 0;
@@ -262,7 +297,7 @@ module riscv_too_glue #(
                         M_AXI_WVALID <= 1;
                         wsm <= WSM_WDATA;
                     end
-                
+
                 WSM_WDATA:
                     if (M_AXI_WREADY) begin
                         M_AXI_WLAST <= 0;
@@ -281,10 +316,9 @@ module riscv_too_glue #(
             endcase // case (wsm)
 
     wire d_wr_done_axi = (wsm == WSM_WRESP) && M_AXI_BVALID;
-    assign d_wr_done = d_wr_done_mem || d_wr_done_axi;
-    
+    assign d_wr_done = d_wr_done_mem || d_wr_done_locio || d_wr_done_axi;
+
     wire d_wr_fault = d_wr_rom_fault || d_wr_done_axi && M_AXI_BRESP != 2'b00;
     assign d_fault = d_rd_fault || d_wr_fault;
-    
-endmodule // riscv_too_glue
 
+endmodule // riscv_too_glue

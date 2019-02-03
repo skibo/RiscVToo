@@ -39,106 +39,106 @@ module test_riscv_too;
 
     parameter MEM_INIT_FILE = "test_too.mem";
 
-	reg               M_AXI_ACLK;
-	reg               M_AXI_ARESETN;
+    reg               M_AXI_ACLK;
+    reg               M_AXI_ARESETN;
 
-	wire [C_M00_AXI_ADDR_WIDTH-1 : 0] M_AXI_ARADDR;
-	wire                              M_AXI_ARVALID;
-	wire                              M_AXI_ARREADY;
-	wire [C_M00_AXI_ID_WIDTH-1 : 0]   M_AXI_ARID;
-	wire                              M_AXI_ARLOCK;
-	wire [3 : 0]                      M_AXI_ARCACHE;
-	wire [2 : 0]                      M_AXI_ARPROT;
-	wire [7 : 0]                      M_AXI_ARLEN;
-	wire [2 : 0]                      M_AXI_ARSIZE;
-	wire [1 : 0]                      M_AXI_ARBURST;
-	wire [3 : 0]                      M_AXI_ARQOS;
-	wire [C_M00_AXI_DATA_WIDTH-1 : 0] M_AXI_RDATA;
-	wire                              M_AXI_RVALID;
-	wire                              M_AXI_RREADY;
-	wire [C_M00_AXI_ID_WIDTH-1 : 0]   M_AXI_RID;
-	wire                              M_AXI_RLAST;
-	wire [1 : 0]                      M_AXI_RRESP;
-	wire [C_M00_AXI_ADDR_WIDTH-1 : 0] M_AXI_AWADDR;
-	wire                              M_AXI_AWVALID;
-	wire                              M_AXI_AWREADY;
-	wire [C_M00_AXI_ID_WIDTH-1 : 0]   M_AXI_AWID;
-	wire                              M_AXI_AWLOCK;
-	wire [3 : 0]                      M_AXI_AWCACHE;
-	wire [2 : 0]                      M_AXI_AWPROT;
-	wire [7 : 0]                      M_AXI_AWLEN;
-	wire [2 : 0]                      M_AXI_AWSIZE;
-	wire [1 : 0]                      M_AXI_AWBURST;
-	wire [3 : 0]                      M_AXI_AWQOS;
-	wire [C_M00_AXI_DATA_WIDTH-1 : 0] M_AXI_WDATA;
-	wire                              M_AXI_WVALID;
-	wire                              M_AXI_WREADY;
-	wire                              M_AXI_WLAST;
-	wire [C_M00_AXI_DATA_WIDTH/8-1 : 0] M_AXI_WSTRB;
-	wire [1 : 0]                        M_AXI_BRESP;
-	wire                                M_AXI_BVALID;
-	wire                                M_AXI_BREADY;
-	wire [C_M00_AXI_ID_WIDTH-1 : 0]     M_AXI_BID;
+    wire [C_M00_AXI_ADDR_WIDTH-1 : 0] M_AXI_ARADDR;
+    wire                              M_AXI_ARVALID;
+    wire                              M_AXI_ARREADY;
+    wire [C_M00_AXI_ID_WIDTH-1 : 0]   M_AXI_ARID;
+    wire                              M_AXI_ARLOCK;
+    wire [3 : 0]                      M_AXI_ARCACHE;
+    wire [2 : 0]                      M_AXI_ARPROT;
+    wire [7 : 0]                      M_AXI_ARLEN;
+    wire [2 : 0]                      M_AXI_ARSIZE;
+    wire [1 : 0]                      M_AXI_ARBURST;
+    wire [3 : 0]                      M_AXI_ARQOS;
+    wire [C_M00_AXI_DATA_WIDTH-1 : 0] M_AXI_RDATA;
+    wire                              M_AXI_RVALID;
+    wire                              M_AXI_RREADY;
+    wire [C_M00_AXI_ID_WIDTH-1 : 0]   M_AXI_RID;
+    wire                              M_AXI_RLAST;
+    wire [1 : 0]                      M_AXI_RRESP;
+    wire [C_M00_AXI_ADDR_WIDTH-1 : 0] M_AXI_AWADDR;
+    wire                              M_AXI_AWVALID;
+    wire                              M_AXI_AWREADY;
+    wire [C_M00_AXI_ID_WIDTH-1 : 0]   M_AXI_AWID;
+    wire                              M_AXI_AWLOCK;
+    wire [3 : 0]                      M_AXI_AWCACHE;
+    wire [2 : 0]                      M_AXI_AWPROT;
+    wire [7 : 0]                      M_AXI_AWLEN;
+    wire [2 : 0]                      M_AXI_AWSIZE;
+    wire [1 : 0]                      M_AXI_AWBURST;
+    wire [3 : 0]                      M_AXI_AWQOS;
+    wire [C_M00_AXI_DATA_WIDTH-1 : 0] M_AXI_WDATA;
+    wire                              M_AXI_WVALID;
+    wire                              M_AXI_WREADY;
+    wire                              M_AXI_WLAST;
+    wire [C_M00_AXI_DATA_WIDTH/8-1 : 0] M_AXI_WSTRB;
+    wire [1 : 0]                        M_AXI_BRESP;
+    wire                                M_AXI_BVALID;
+    wire                                M_AXI_BREADY;
+    wire [C_M00_AXI_ID_WIDTH-1 : 0]     M_AXI_BID;
 
-	reg                                 extirq;
+    reg                                 extirq;
 
 
-	initial begin
-		M_AXI_ACLK = 0;
-		M_AXI_ARESETN = 0;
-		extirq = 0;
+    initial begin
+        M_AXI_ACLK = 0;
+        M_AXI_ARESETN = 0;
+        extirq = 0;
 
         // wait 20 clocks and release reset
         repeat (20) @(posedge M_AXI_ACLK);
         M_AXI_ARESETN <= 1;
-	end
+    end
 
     always #5 M_AXI_ACLK = ~M_AXI_ACLK;
 
-	riscv_too #(.MEM_INIT_FILE(MEM_INIT_FILE))
+    riscv_too #(.MEM_INIT_FILE(MEM_INIT_FILE))
                 riscv_too_0
     (
-		.M_AXI_ACLK(M_AXI_ACLK),
-		.M_AXI_ARESETN(M_AXI_ARESETN),
-		.M_AXI_ARADDR(M_AXI_ARADDR),
-		.M_AXI_ARVALID(M_AXI_ARVALID),
-		.M_AXI_ARREADY(M_AXI_ARREADY),
-		.M_AXI_ARID(M_AXI_ARID),
-		.M_AXI_ARLOCK(M_AXI_ARLOCK),
-		.M_AXI_ARCACHE(M_AXI_ARCACHE),
-		.M_AXI_ARPROT(M_AXI_ARPROT),
-		.M_AXI_ARLEN(M_AXI_ARLEN),
-		.M_AXI_ARSIZE(M_AXI_ARSIZE),
-		.M_AXI_ARBURST(M_AXI_ARBURST),
-		.M_AXI_ARQOS(M_AXI_ARQOS),
-		.M_AXI_RDATA(M_AXI_RDATA),
-		.M_AXI_RVALID(M_AXI_RVALID),
-		.M_AXI_RREADY(M_AXI_RREADY),
-		.M_AXI_RID(M_AXI_RID),
-		.M_AXI_RLAST(M_AXI_RLAST),
-		.M_AXI_RRESP(M_AXI_RRESP),
-		.M_AXI_AWADDR(M_AXI_AWADDR),
-		.M_AXI_AWVALID(M_AXI_AWVALID),
-		.M_AXI_AWREADY(M_AXI_AWREADY),
-		.M_AXI_AWID(M_AXI_AWID),
-		.M_AXI_AWLOCK(M_AXI_AWLOCK),
-		.M_AXI_AWCACHE(M_AXI_AWCACHE),
-		.M_AXI_AWPROT(M_AXI_AWPROT),
-		.M_AXI_AWLEN(M_AXI_AWLEN),
-		.M_AXI_AWSIZE(M_AXI_AWSIZE),
-		.M_AXI_AWBURST(M_AXI_AWBURST),
-		.M_AXI_AWQOS(M_AXI_AWQOS),
-		.M_AXI_WDATA(M_AXI_WDATA),
-		.M_AXI_WVALID(M_AXI_WVALID),
-		.M_AXI_WREADY(M_AXI_WREADY),
-		.M_AXI_WLAST(M_AXI_WLAST),
-		.M_AXI_WSTRB(M_AXI_WSTRB),
-		.M_AXI_BRESP(M_AXI_BRESP),
-		.M_AXI_BVALID(M_AXI_BVALID),
-		.M_AXI_BREADY(M_AXI_BREADY),
-		.M_AXI_BID(M_AXI_BID),
-		.extirq(extirq)
-	);
+        .M_AXI_ACLK(M_AXI_ACLK),
+        .M_AXI_ARESETN(M_AXI_ARESETN),
+        .M_AXI_ARADDR(M_AXI_ARADDR),
+        .M_AXI_ARVALID(M_AXI_ARVALID),
+        .M_AXI_ARREADY(M_AXI_ARREADY),
+        .M_AXI_ARID(M_AXI_ARID),
+        .M_AXI_ARLOCK(M_AXI_ARLOCK),
+        .M_AXI_ARCACHE(M_AXI_ARCACHE),
+        .M_AXI_ARPROT(M_AXI_ARPROT),
+        .M_AXI_ARLEN(M_AXI_ARLEN),
+        .M_AXI_ARSIZE(M_AXI_ARSIZE),
+        .M_AXI_ARBURST(M_AXI_ARBURST),
+        .M_AXI_ARQOS(M_AXI_ARQOS),
+        .M_AXI_RDATA(M_AXI_RDATA),
+        .M_AXI_RVALID(M_AXI_RVALID),
+        .M_AXI_RREADY(M_AXI_RREADY),
+        .M_AXI_RID(M_AXI_RID),
+        .M_AXI_RLAST(M_AXI_RLAST),
+        .M_AXI_RRESP(M_AXI_RRESP),
+        .M_AXI_AWADDR(M_AXI_AWADDR),
+        .M_AXI_AWVALID(M_AXI_AWVALID),
+        .M_AXI_AWREADY(M_AXI_AWREADY),
+        .M_AXI_AWID(M_AXI_AWID),
+        .M_AXI_AWLOCK(M_AXI_AWLOCK),
+        .M_AXI_AWCACHE(M_AXI_AWCACHE),
+        .M_AXI_AWPROT(M_AXI_AWPROT),
+        .M_AXI_AWLEN(M_AXI_AWLEN),
+        .M_AXI_AWSIZE(M_AXI_AWSIZE),
+        .M_AXI_AWBURST(M_AXI_AWBURST),
+        .M_AXI_AWQOS(M_AXI_AWQOS),
+        .M_AXI_WDATA(M_AXI_WDATA),
+        .M_AXI_WVALID(M_AXI_WVALID),
+        .M_AXI_WREADY(M_AXI_WREADY),
+        .M_AXI_WLAST(M_AXI_WLAST),
+        .M_AXI_WSTRB(M_AXI_WSTRB),
+        .M_AXI_BRESP(M_AXI_BRESP),
+        .M_AXI_BVALID(M_AXI_BVALID),
+        .M_AXI_BREADY(M_AXI_BREADY),
+        .M_AXI_BID(M_AXI_BID),
+        .extirq(extirq)
+    );
 
     axi4_my_slave #(.MEMSIZE(32768))
     axi4_my_slave_0(
@@ -183,22 +183,23 @@ module test_riscv_too;
                                   .S_AXI_BID(M_AXI_BID)
                                   );
 
-    // Monitor writes on AXI.  Look writes to magic for magic location.
+    // Monitor writes on AXI.  Look for writes to magic location which
+    // indicate test pass or failure.
     initial begin
-        
+
         while (!M_AXI_ARESETN)
             @(posedge M_AXI_ACLK);
-        
+
         @(posedge M_AXI_ACLK);
-        
+
         forever begin
             while (!(M_AXI_AWVALID && M_AXI_AWREADY &&
                      M_AXI_AWADDR == 'hf0000))
                 @(posedge M_AXI_ACLK);
-            
+
             while (!(M_AXI_WVALID && M_AXI_WREADY))
                 @(posedge M_AXI_ACLK);
-            
+
             case (M_AXI_WDATA)
                 'd0: // nothing
                     $display("[%t] wrote 0 to 0xf0000.  continuing", $time);
@@ -213,6 +214,6 @@ module test_riscv_too;
                 end
             endcase
         end
-    end    
+    end
 
 endmodule // test_riscv_too

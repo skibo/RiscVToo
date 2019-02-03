@@ -90,8 +90,10 @@ module riscv_too #(
      input                                 extirq
      );
 
-    parameter integer   AWIDTH = 32;
-    parameter integer   DWIDTH = 32;
+    localparam
+        AWIDTH = 32,
+        DWIDTH = 32,
+        LOCIO_AWIDTH = 8;
 
     // Convenience signal names.
     wire    clk = M_AXI_ACLK;
@@ -113,6 +115,13 @@ module riscv_too #(
     wire                        d_wr_done;
     wire                        d_fault;
 
+    wire [LOCIO_AWIDTH - 1 : 0] locio_addr;
+    wire                        locio_addr_valid;
+    wire [DWIDTH - 1 : 0]       locio_data_wr;
+    wire                        locio_wr;
+    wire [DWIDTH - 1 : 0]       locio_data_rd;
+    wire                        timerint;
+
     riscv_cpu #(.AWIDTH(AWIDTH),
                 .DWIDTH(DWIDTH),
                 .HART_ID(HART_ID)
@@ -133,6 +142,7 @@ module riscv_too #(
         .d_wr_done(d_wr_done),
         .d_fault(d_fault),
 
+        .timerint(timerint),
         .extirq(extirq),
 
         .reset(reset),
@@ -161,6 +171,21 @@ module riscv_too #(
 
                     .clk(clk)
             );
+
+    riscv_too_local_io #(.LOCIO_AWIDTH(LOCIO_AWIDTH))
+    riscv_too_local_io_0(
+                         .locio_addr(locio_addr),
+                         .locio_addr_valid(locio_addr_valid),
+                         .locio_data_wr(locio_data_wr),
+                         .locio_wr(locio_wr),
+                         .locio_data_rd(locio_data_rd),
+
+                         .timerint(timerint),
+
+                         .reset(reset),
+                         .clk(clk)
+            );
+
 
     riscv_too_glue #(.AWIDTH(AWIDTH),
                      .DWIDTH(DWIDTH),
@@ -208,6 +233,12 @@ module riscv_too #(
              .M_AXI_BVALID(M_AXI_BVALID),
              .M_AXI_BREADY(M_AXI_BREADY),
              .M_AXI_BID(M_AXI_BID),
+
+             .locio_addr(locio_addr),
+             .locio_addr_valid(locio_addr_valid),
+             .locio_data_wr(locio_data_wr),
+             .locio_wr(locio_wr),
+             .locio_data_rd(locio_data_rd),
 
              .i_addr(i_addr),
              .i_addr_valid(i_addr_valid),

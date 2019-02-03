@@ -79,6 +79,7 @@ module riscv_csr #(parameter DWIDTH = 32,
      input [AWIDTH - 1 : 0]      badaddr,
      input                       badaddr_set,
      input                       do_mret,
+     input                       timerint,
      input                       extirq,
      output                      interrupt,
      output [AWIDTH - 1 : 0]     mret_pc,
@@ -196,7 +197,7 @@ module riscv_csr #(parameter DWIDTH = 32,
         end
 
     wire    meip = extirq;
-    wire    mtip = 0; // XXX: we haven't implemented timecmp for now.
+    wire    mtip = timerint;
     reg     msip;
     wire [DWIDTH - 1 : 0] mip_reg = {{(DWIDTH - 12){1'b0}},
                                      meip, 3'b000, mtip, 3'b000, msip, 3'b000};

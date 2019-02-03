@@ -144,6 +144,37 @@ badrd1:
         lw      t3, 0(t1)
         bne     t2, t3, fail
 
+        /* Read mtime and mtimeh registers. */
+        li      t1, 0x20000
+        li      t2, 0x30000
+        lw      t3, 8(t1)
+        sw      t3, 8(t2)
+        lw      t3, 12(t1)
+        sw      t3, 12(t2)
+        lw      t3, 0(t1)
+        sw      t3, 0(t2)
+        lw      t4, 4(t1)
+        sw      t4, 4(t2)
+
+        /* Set timecmp register. */
+        addi    t3, t3, 64
+        sw      t3, 8(t1)
+        sw      t4, 12(t1)
+
+        /* Enable interrupt. (MTIE in mie and then MIE in mstatus.) */
+        li      t0, 1 << 7
+        csrs    mie, t0
+        csrsi   mstatus, 8
+
+        /* Wait for interrupt. */
+timo:
+        j       timo
+
+        /* Clear interrupt bits. */
+        li	t0, 1 << 7
+        csrc	mie, t0
+        csrci	mstatus, 8
+
         /* Success! */
 success:
         li      t1, 2
@@ -166,6 +197,14 @@ _except:
         /* Check if exception happened where we expected. */
         la      t3, wrom
         beq     t1, t3, 4f
+        la      t3, timo
+        bne     t1, t3, 3f
+
+        /* timer int.  clear by writing timecmp. */
+        li      t3, 0x20000
+        sw      zero, 8(t3)
+        j       4f
+3:
         /* XXX: On failed reads and writes to AXI, mepc if off by 4.  Fix this
         * later. */
         addi    t1, t1, -4
