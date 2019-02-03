@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 //
-// Copyright (c) 2016 Thomas Skibo. <Thomas@Skibo.net>
+// Copyright (c) 2016-2019 Thomas Skibo. <Thomas@Skibo.net>
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -24,66 +24,6 @@
 // OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 // SUCH DAMAGE.
 //
-
-// Opcode field in bits 6 : 0 in instruction.
-`define OP_LUI      7'b0110111
-`define OP_AUIPC    7'b0010111
-`define OP_JAL      7'b1101111
-`define OP_JALR     7'b1100111
-`define OP_BR       7'b1100011
-`define OP_LOAD     7'b0000011
-`define OP_STORE    7'b0100011
-`define OP_ALUI     7'b0010011
-`define OP_ALUR     7'b0110011
-`define OP_FENCE    7'b0001111
-`define OP_SYS      7'b1110011
-
-// ALU funct3, bits 14 : 12 in ALU instructions
-`define ALU_ADD_SUB 3'b000
-`define ALU_SLL     3'b001
-`define ALU_SLT     3'b010
-`define ALU_SLTU    3'b011
-`define ALU_XOR     3'b100
-`define ALU_SRA_SRL 3'b101
-`define ALU_OR      3'b110
-`define ALU_AND     3'b111
-
-// Condition branch funct3, bits 14 : 12 in BR instructions
-`define BR_EQ       3'b000
-`define BR_NE       3'b001
-`define BR_LT       3'b100
-`define BR_GE       3'b101
-`define BR_LTU      3'b110
-`define BR_GEU      3'b111
-
-// Load width funct3, bits 14 : 12 in LOAD instructions
-`define LD_B        3'b000
-`define LD_H        3'b001
-`define LD_W        3'b010
-`define LD_BU       3'b100
-`define LD_HU       3'b101
-
-// Store width funct3, bits 14 : 12 in STORE instructions
-`define ST_B        3'b000
-`define ST_H        3'b001
-`define ST_W        3'b010
-
-// System instructions
-`define ECALL_INSTR     32'h0000_0073
-`define EBREAK_INSTR    32'h0010_0073
-`define MRET_INSTR      32'h3020_0073
-`define WFI_INSTR       32'h1050_0073
-
-// Exception Reasons
-`define EXC_INSTR_ADDR_MISALIGNED	4'd0
-`define EXC_INSTR_FAULT             4'd1
-`define EXC_ILLEGAL_INSTR           4'd2
-`define EXC_BREAKPOINT              4'd3
-`define EXC_LOAD_ADDR_MISALIGNED    4'd4
-`define EXC_LOAD_FAULT              4'd5
-`define EXC_STORE_ADDR_MISALIGNED   4'd6
-`define EXC_STORE_FAULT             4'd7
-`define EXC_CALL_M                  4'd11
 
 module riscv_core #(parameter DWIDTH = 32,
                     parameter AWIDTH = 32,
@@ -122,6 +62,72 @@ module riscv_core #(parameter DWIDTH = 32,
 
      input                             reset,
      input                             clk);
+
+
+    localparam [6 : 0]
+        // Opcode field in bits 6 : 0 in instruction.
+        OP_LUI =	7'b0110111,
+        OP_AUIPC =  7'b0010111,
+        OP_JAL =    7'b1101111,
+        OP_JALR =   7'b1100111,
+        OP_BR =     7'b1100011,
+        OP_LOAD =   7'b0000011,
+        OP_STORE =  7'b0100011,
+        OP_ALUI =   7'b0010011,
+        OP_ALUR =   7'b0110011,
+        OP_FENCE =  7'b0001111,
+        OP_SYS =    7'b1110011;
+
+    localparam [2 : 0]
+        // ALU funct3, bits 14 : 12 in ALU instructions
+        ALU_ADD_SUB =	3'b000,
+        ALU_SLL =       3'b001,
+        ALU_SLT =       3'b010,
+        ALU_SLTU =      3'b011,
+        ALU_XOR =       3'b100,
+        ALU_SRA_SRL =	3'b101,
+        ALU_OR =        3'b110,
+        ALU_AND =       3'b111;
+
+    localparam [2 : 0]
+        // Condition branch funct3, bits 14 : 12 in BR instructions
+        BR_EQ =		3'b000,
+        BR_NE =		3'b001,
+        BR_LT =     3'b100,
+        BR_GE =     3'b101,
+        BR_LTU =    3'b110,
+        BR_GEU =    3'b111;
+
+    localparam [2 : 0]
+        // Load width funct3, bits 14 : 12 in LOAD instructions
+        LD_B =		3'b000,
+        LD_H =      3'b001,
+        LD_W =      3'b010,
+        LD_BU =     3'b100,
+        LD_HU =     3'b101,
+        // Store width funct3, bits 14 : 12 in STORE instructions
+        ST_B =      3'b000,
+        ST_H =      3'b001,
+        ST_W =      3'b010;
+
+    localparam [31 : 0]
+        // System instructions
+        ECALL_INSTR =    32'h0000_0073,
+        EBREAK_INSTR =   32'h0010_0073,
+        MRET_INSTR =     32'h3020_0073,
+        WFI_INSTR =      32'h1050_0073;
+
+    localparam [3 : 0]
+        // Exception Reasons
+        EXC_INSTR_ADDR_MISALIGNED =	4'd0,
+        EXC_INSTR_FAULT =           4'd1,
+        EXC_ILLEGAL_INSTR =         4'd2,
+        EXC_BREAKPOINT =            4'd3,
+        EXC_LOAD_ADDR_MISALIGNED =  4'd4,
+        EXC_LOAD_FAULT =            4'd5,
+        EXC_STORE_ADDR_MISALIGNED = 4'd6,
+        EXC_STORE_FAULT =           4'd7,
+        EXC_CALL_M =                4'd11;
 
     // Fetch
     reg [AWIDTH - 1 : 0]        pc;
@@ -178,7 +184,6 @@ module riscv_core #(parameter DWIDTH = 32,
     reg [DWIDTH - 1 : 0]        w_reg_data_em;
     wire [DWIDTH - 1 : 0]       w_reg_data_m;
     reg [4 : 0]                 w_reg_num_m;
-
     ////////////////////////// Stalls ///////////////////////////
 
     wire                        stall = mem_stall || wfi || load_bubble;
@@ -279,18 +284,18 @@ module riscv_core #(parameter DWIDTH = 32,
     end
 
     assign instr_d_ill = instr_d_valid &&
-                         i_data[6 : 0] != `OP_LUI &&
-                         i_data[6 : 0] != `OP_AUIPC &&
-                         i_data[6 : 0] != `OP_JAL &&
-                         i_data[6 : 0] != `OP_JALR &&
-                         i_data[6 : 0] != `OP_BR &&
-                         i_data[6 : 0] != `OP_LOAD &&
-                         i_data[6 : 0] != `OP_STORE &&
-                         i_data[6 : 0] != `OP_ALUI &&
+                         i_data[6 : 0] != OP_LUI &&
+                         i_data[6 : 0] != OP_AUIPC &&
+                         i_data[6 : 0] != OP_JAL &&
+                         i_data[6 : 0] != OP_JALR &&
+                         i_data[6 : 0] != OP_BR &&
+                         i_data[6 : 0] != OP_LOAD &&
+                         i_data[6 : 0] != OP_STORE &&
+                         i_data[6 : 0] != OP_ALUI &&
                          {i_data[25], i_data[6 : 0]} !=
-                         {1'b0, `OP_ALUR} &&
-                         i_data[6 : 0] != `OP_FENCE &&
-                         i_data[6 : 0] != `OP_SYS;
+                         {1'b0, OP_ALUR} &&
+                         i_data[6 : 0] != OP_FENCE &&
+                         i_data[6 : 0] != OP_SYS;
 
     ////////////////////// Exec Stage //////////////////////////
 
@@ -328,28 +333,28 @@ module riscv_core #(parameter DWIDTH = 32,
 
     always @(*)
         case (instr_e[14 : 12])
-            `ALU_ADD_SUB:
+            ALU_ADD_SUB:
                 if (instr_e[30] && instr_e[5])
                     alu_result = $signed(a_reg_r) - $signed(b_operand);
                 else
                     alu_result = $signed(a_reg_r) + $signed(b_operand);
-            `ALU_SLL:
+            ALU_SLL:
                 alu_result = a_reg_r << b_operand[4 : 0];
-            `ALU_SLT:
+            ALU_SLT:
                 alu_result = ($signed(a_reg_r) < $signed(b_operand)) ?
                              'd1 : 'd0;
-            `ALU_SLTU:
+            ALU_SLTU:
                 alu_result = (a_reg_r < b_operand) ? 'd1 : 'd0;
-            `ALU_XOR:
+            ALU_XOR:
                 alu_result = a_reg_r ^ b_operand;
-            `ALU_SRA_SRL:
+            ALU_SRA_SRL:
                 if (instr_e[30])
                     alu_result = $signed(a_reg_r) >>> b_operand[4 : 0];
                 else
                     alu_result = a_reg_r >> b_operand[4 : 0];
-            `ALU_OR:
+            ALU_OR:
                 alu_result = a_reg_r | b_operand;
-            `ALU_AND:
+            ALU_AND:
                 alu_result = a_reg_r & b_operand;
         endcase
 
@@ -357,26 +362,26 @@ module riscv_core #(parameter DWIDTH = 32,
     // in execute stage has a destination register.  XXX: we could this in
     // the decode stage.
     assign  w_reg_en_e = instr_e_valid && w_reg_num_e != 5'd0 &&
-                             (instr_e[6 : 0] == `OP_LUI ||
-                              instr_e[6 : 0] == `OP_AUIPC ||
-                              instr_e[6 : 0] == `OP_JAL ||
-                              instr_e[6 : 0] == `OP_JALR ||
-                              instr_e[6 : 0] == `OP_ALUI ||
-                              instr_e[6 : 0] == `OP_ALUR ||
-                              instr_e[6 : 0] == `OP_LOAD ||
+                             (instr_e[6 : 0] == OP_LUI ||
+                              instr_e[6 : 0] == OP_AUIPC ||
+                              instr_e[6 : 0] == OP_JAL ||
+                              instr_e[6 : 0] == OP_JALR ||
+                              instr_e[6 : 0] == OP_ALUI ||
+                              instr_e[6 : 0] == OP_ALUR ||
+                              instr_e[6 : 0] == OP_LOAD ||
                               csr_e);
 
     assign w_reg_num_e = instr_e[11 : 7];
 
     always @(*)
         case (instr_e[6 : 0])
-            `OP_ALUI, `OP_ALUR:
+            OP_ALUI, OP_ALUR:
                 w_reg_data_e = alu_result;
-            `OP_JAL, `OP_JALR:
+            OP_JAL, OP_JALR:
                 w_reg_data_e = pc_e + 3'd4;
-            `OP_LUI:
+            OP_LUI:
                 w_reg_data_e = {instr_e[31 : 12], 12'd0};
-            `OP_AUIPC:
+            OP_AUIPC:
                 w_reg_data_e = pc_e + {instr_e[31 : 12], 12'd0};
             default:
                 w_reg_data_e = 32'hXXXX_XXXX;
@@ -389,38 +394,38 @@ module riscv_core #(parameter DWIDTH = 32,
                             {instr_e[31 : 25], instr_e[11 : 7]} : // Store
                             instr_e[31 : 20])}; // Load
     assign d_addr = {d_byte_addr[AWIDTH - 1 : 2], 2'b00};
-    assign d_we = !stall && instr_e_valid && instr_e[6 : 0] == `OP_STORE;
+    assign d_we = !stall && instr_e_valid && instr_e[6 : 0] == OP_STORE;
 
     assign d_addr_valid = !stall && instr_e_valid &&
-                          (instr_e[6 : 0] == `OP_STORE ||
-                           instr_e[6 : 0] == `OP_LOAD);
+                          (instr_e[6 : 0] == OP_STORE ||
+                           instr_e[6 : 0] == OP_LOAD);
 
-    assign load_e = instr_e_valid && instr_e[6 : 0] == `OP_LOAD;
-    assign store_e = instr_e_valid && instr_e[6 : 0] == `OP_STORE;
+    assign load_e = instr_e_valid && instr_e[6 : 0] == OP_LOAD;
+    assign store_e = instr_e_valid && instr_e[6 : 0] == OP_STORE;
 
     assign load_unaligned = load_e && !stall &&
-         ((instr_e[14 : 12] == `LD_W && d_byte_addr[1 : 0] != 2'b00) ||
-          ((instr_e[14 : 12] ==  `LD_H || instr_e[14 : 12] == `LD_HU) &&
+         ((instr_e[14 : 12] == LD_W && d_byte_addr[1 : 0] != 2'b00) ||
+          ((instr_e[14 : 12] ==  LD_H || instr_e[14 : 12] == LD_HU) &&
            d_byte_addr[0] != 1'b0));
 
     assign store_unaligned = store_e && !stall &&
-         ((instr_e[14 : 12] == `ST_W && d_byte_addr[1 : 0] != 2'b00) ||
-          (instr_e[14 : 12] == `ST_H && d_byte_addr[0] != 1'b0));
+         ((instr_e[14 : 12] == ST_W && d_byte_addr[1 : 0] != 2'b00) ||
+          (instr_e[14 : 12] == ST_H && d_byte_addr[0] != 1'b0));
 
 
     // Byte-enables and write data.  XXX: hard-coded 32-bit.
     always @(*)
         case (instr_e[14 : 12])
-            `ST_B: begin
+            ST_B: begin
                 d_be = 4'b0001 << d_byte_addr[1:0];
                 d_data_wr = {b_reg_r[7 : 0], b_reg_r[7 : 0],
                              b_reg_r[7 : 0], b_reg_r[7 : 0]};
             end
-            `ST_H: begin
+            ST_H: begin
                 d_be = d_byte_addr[1] ? 4'b1100 : 4'b0011;
                 d_data_wr = {b_reg_r[15 : 0], b_reg_r[15 : 0]};
             end
-            `ST_W: begin
+            ST_W: begin
                 d_be = 4'b1111;
                 d_data_wr = b_reg_r;
             end
@@ -433,27 +438,27 @@ module riscv_core #(parameter DWIDTH = 32,
     // Branch target:
     always @(*) begin
         case (instr_e[6 : 0])
-            `OP_JAL:
+            OP_JAL:
                 br_target = pc_e +
                             {{(AWIDTH - 19){instr_e[31]}},
                              instr_e[31],
                              instr_e[19 : 12],
                              instr_e[20],
                              instr_e[30 : 21], 1'b0};
-            `OP_JALR: begin
+            OP_JALR: begin
                 br_target = a_reg_r +
                             {{(AWIDTH - 12){instr_e[31]}},
                              instr_e[31 : 20]};
                 br_target[0] = 1'b0;
             end
-            `OP_BR:
+            OP_BR:
                 br_target = pc_e +
                             {{(AWIDTH - 13){instr_e[31]}},
                              instr_e[31],
                              instr_e[7],
                              instr_e[30 : 25],
                              instr_e[11 : 8], 1'b0};
-            `OP_SYS:
+            OP_SYS:
                 br_target = mret_pc; // MRET
             default:
                 br_target = {AWIDTH{1'bX}};
@@ -463,40 +468,40 @@ module riscv_core #(parameter DWIDTH = 32,
     always @(*)
         if (instr_e_valid)
             case (instr_e[6 : 0])
-                `OP_BR:
+                OP_BR:
                     // Condition branch tests
                     case (instr_e[14 : 12])
-                        `BR_EQ:
+                        BR_EQ:
                             do_branch = a_reg_r == b_reg_r;
-                        `BR_NE:
+                        BR_NE:
                             do_branch = a_reg_r != b_reg_r;
-                        `BR_LT:
+                        BR_LT:
                             do_branch = $signed(a_reg_r) < $signed(b_reg_r);
-                        `BR_GE:
+                        BR_GE:
                             do_branch = $signed(a_reg_r) >= $signed(b_reg_r);
-                        `BR_LTU:
+                        BR_LTU:
                             do_branch = a_reg_r < b_reg_r;
-                        `BR_GEU:
+                        BR_GEU:
                             do_branch = a_reg_r >= b_reg_r;
                         default:
                             do_branch = 0;
                     endcase
-                `OP_JAL, `OP_JALR:
+                OP_JAL, OP_JALR:
                     do_branch = 1;
-                `OP_SYS:
-                    do_branch = instr_e == `MRET_INSTR;
+                OP_SYS:
+                    do_branch = instr_e == MRET_INSTR;
                 default:
                     do_branch = 0;
             endcase
         else
             do_branch = 0;
 
-    assign do_mret = instr_e_valid && !stall && instr_e == `MRET_INSTR;
+    assign do_mret = instr_e_valid && !stall && instr_e == MRET_INSTR;
 
     assign br_unaligned = do_branch && br_target[1 : 0] != 2'b00;
 
     // CSR Access instructions.
-    assign csr_e = instr_e_valid && instr_e[6 : 0] == `OP_SYS &&
+    assign csr_e = instr_e_valid && instr_e[6 : 0] == OP_SYS &&
                    instr_e[14 : 12] != 3'b000;
 
     assign csr_op = (csr_e && !stall) ? instr_e[13 : 12] : 2'b00;
@@ -554,24 +559,24 @@ module riscv_core #(parameter DWIDTH = 32,
 
     always @(*)
         case (load_width_r1)
-            `LD_B: begin
+            LD_B: begin
                 load_data[7 : 0] = d_data_rd >>
                                    {d_byte_addr_m[1 : 0], 3'b000};
                 load_data[31 : 8] = {24{load_data[7]}};
             end
-            `LD_H: begin
+            LD_H: begin
                 load_data[15 : 0] = d_data_rd >>
                                     {d_byte_addr_m[1], 4'b0000};
                 load_data[31 : 16] = {16{load_data[15]}};
             end
-            `LD_W:
+            LD_W:
                 load_data = d_data_rd;
-            `LD_BU: begin
+            LD_BU: begin
                 load_data[7 : 0] = d_data_rd >>
                                    {d_byte_addr_m[1 : 0], 3'b000};
                 load_data[31 : 8] = 24'd0;
             end
-            `LD_HU: begin
+            LD_HU: begin
                 load_data[15 : 0] = d_data_rd >>
                                     {d_byte_addr_m[1], 4'b0000};
                 load_data[31 : 16] = 16'd0;
@@ -590,24 +595,24 @@ module riscv_core #(parameter DWIDTH = 32,
     // this infrastructure too because the CSR block returns its data
     // in the mem stage.
     wire load_hazard_a_de = instr_e_valid &&
-         (instr_e[6 : 0] == `OP_LOAD || csr_e) &&
+         (instr_e[6 : 0] == OP_LOAD || csr_e) &&
          instr_d_valid && w_reg_num_e == a_reg_num_d &&
          w_reg_num_e != 5'd0 &&
-         (i_data[6 : 0] == `OP_JALR ||
-          i_data[6 : 0] == `OP_BR ||
-          i_data[6 : 0] == `OP_LOAD ||
-          i_data[6 : 0] == `OP_STORE ||
-          i_data[6 : 0] == `OP_ALUI ||
-          i_data[6 : 0] == `OP_ALUR ||
-          (i_data[6 : 0] == `OP_SYS && !i_data[14] &&
+         (i_data[6 : 0] == OP_JALR ||
+          i_data[6 : 0] == OP_BR ||
+          i_data[6 : 0] == OP_LOAD ||
+          i_data[6 : 0] == OP_STORE ||
+          i_data[6 : 0] == OP_ALUI ||
+          i_data[6 : 0] == OP_ALUR ||
+          (i_data[6 : 0] == OP_SYS && !i_data[14] &&
            i_data[13 : 12] != 2'b00));
     wire load_hazard_b_de = instr_e_valid &&
-         (instr_e[6 : 0] == `OP_LOAD || csr_e) &&
+         (instr_e[6 : 0] == OP_LOAD || csr_e) &&
          instr_d_valid && w_reg_num_e == b_reg_num_d &&
          w_reg_num_e != 5'd0 &&
-         (i_data[6 : 0] == `OP_BR ||
-          i_data[6 : 0] == `OP_STORE ||
-          i_data[6 : 0] == `OP_ALUR);
+         (i_data[6 : 0] == OP_BR ||
+          i_data[6 : 0] == OP_STORE ||
+          i_data[6 : 0] == OP_ALUR);
 
     always @(posedge clk)
         if (reset || (d_data_rd_valid || csr_m) && load_hazard_a_em)
@@ -637,8 +642,8 @@ module riscv_core #(parameter DWIDTH = 32,
         else if (d_fault && storing)
             d_fault_s <= 1;
 
-    wire ecall_e = instr_e_valid && instr_e == `ECALL_INSTR && !stall;
-    wire ebreak_e = instr_e_valid && instr_e == `EBREAK_INSTR && !stall;
+    wire ecall_e = instr_e_valid && instr_e == ECALL_INSTR && !stall;
+    wire ebreak_e = instr_e_valid && instr_e == EBREAK_INSTR && !stall;
 
     assign do_exception = !stall && (ecall_e || ebreak_e || instr_e_ill ||
                                      load_unaligned || store_unaligned ||
@@ -653,33 +658,33 @@ module riscv_core #(parameter DWIDTH = 32,
         exc_pc = pc_e;
 
         if (br_unaligned)
-            exc_reason = `EXC_INSTR_ADDR_MISALIGNED;
+            exc_reason = EXC_INSTR_ADDR_MISALIGNED;
         else if (load_unaligned)
-            exc_reason = `EXC_LOAD_ADDR_MISALIGNED;
+            exc_reason = EXC_LOAD_ADDR_MISALIGNED;
         else if (store_unaligned)
-            exc_reason = `EXC_STORE_ADDR_MISALIGNED;
+            exc_reason = EXC_STORE_ADDR_MISALIGNED;
         else if (d_fault_l) begin
-            exc_reason = `EXC_LOAD_FAULT;
+            exc_reason = EXC_LOAD_FAULT;
             exc_pc = pc_m;
         end
         else if (d_fault_s) begin
-            exc_reason = `EXC_STORE_FAULT;
+            exc_reason = EXC_STORE_FAULT;
             exc_pc = pc_m;
         end
         else if (i_fault_1) begin
-            exc_reason = `EXC_INSTR_FAULT;
+            exc_reason = EXC_INSTR_FAULT;
             exc_pc = pc_e;
         end
         else if (instr_e_ill)
-            exc_reason = `EXC_ILLEGAL_INSTR;
+            exc_reason = EXC_ILLEGAL_INSTR;
         else if (interrupt) begin
             exc_intr = 1;
             exc_pc = pc_d;
         end
         else if (ecall_e)
-            exc_reason = `EXC_CALL_M;
+            exc_reason = EXC_CALL_M;
         else if (ebreak_e)
-            exc_reason = `EXC_BREAKPOINT;
+            exc_reason = EXC_BREAKPOINT;
     end
 
     assign badaddr_set = br_unaligned || load_unaligned || store_unaligned ||
@@ -697,7 +702,7 @@ module riscv_core #(parameter DWIDTH = 32,
     always @(posedge clk)
         if (reset || do_exception || interrupt)
             wfi <= 0;
-        else if (!stall && instr_d_valid && i_data == `WFI_INSTR)
+        else if (!stall && instr_d_valid && i_data == WFI_INSTR)
             wfi <= 1;
 
 `ifdef verbose

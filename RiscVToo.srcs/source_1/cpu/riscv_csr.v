@@ -25,42 +25,6 @@
 // SUCH DAMAGE.
 //
 
-// Machine Info Registers
-`define CSR_M_VENDORID  12'hF11
-`define CSR_M_ARCHID    12'hF12
-`define CSR_M_IMPID     12'hF13
-`define CSR_M_HARTID    12'hF14
-
-// Machine Trap Setup
-`define CSR_M_STATUS    12'h300
-`define CSR_M_ISA       12'h301
-`define CSR_M_EDELEG    12'h302
-`define CSR_M_IDELEG    12'h303
-`define CSR_M_IE        12'h304
-`define CSR_M_TVEC      12'h305
-`define CSR_M_COUNTEREN 12'h306
-
-// Machine Trap Handling
-`define CSR_M_SCRATCH   12'h340
-`define CSR_M_EPC       12'h341
-`define CSR_M_CAUSE     12'h342
-`define CSR_M_TVAL      12'h343
-`define CSR_M_IP        12'h344
-
-// Machine Timers and Counters
-`define CSR_M_CYCLE     12'hB00
-`define CSR_M_INSTRET   12'hB02
-`define CSR_M_CYCLEH    12'hB80
-`define CSR_M_INSTRETH  12'hB82
-
-`define CPU_MISA        32'h4000_0100   // 32I
-
-// CSR "operations" (bits 13:12 of csr instructions)
-`define CSR_OP_NONE 2'b00
-`define CSR_OP_WR   2'b01
-`define CSR_OP_S    2'b10
-`define CSR_OP_C    2'b11
-
 module riscv_csr #(parameter DWIDTH = 32,
                    parameter AWIDTH = 32,
                    parameter [31 : 0] MTVEC = 32'h0000_01c0,
@@ -88,18 +52,58 @@ module riscv_csr #(parameter DWIDTH = 32,
      input                       reset,
      input                       clk);
 
+    localparam [11 : 0]
+        // Machine Info Registers
+        CSR_M_VENDORID =	12'hF11,
+        CSR_M_ARCHID =      12'hF12,
+        CSR_M_IMPID =       12'hF13,
+        CSR_M_HARTID =      12'hF14,
+
+        // Machine Trap Setup
+        CSR_M_STATUS =      12'h300,
+        CSR_M_ISA =         12'h301,
+        CSR_M_EDELEG =      12'h302,
+        CSR_M_IDELEG =      12'h303,
+        CSR_M_IE =          12'h304,
+        CSR_M_TVEC =        12'h305,
+        CSR_M_COUNTEREN =   12'h306,
+
+        // Machine Trap Handling
+        CSR_M_SCRATCH =		12'h340,
+        CSR_M_EPC =         12'h341,
+        CSR_M_CAUSE =       12'h342,
+        CSR_M_TVAL =        12'h343,
+        CSR_M_IP =          12'h344,
+
+        // Machine Timers and Counters
+        CSR_M_CYCLE =       12'hB00,
+        CSR_M_INSTRET =		12'hB02,
+        CSR_M_CYCLEH =      12'hB80,
+        CSR_M_INSTRETH =    12'hB82;
+
+    localparam [31 : 0]
+        // Value in MISA register: rv32i
+        CPU_MISA =	32'h4000_0100;
+
+    // CSR "operations" (bits 13:12 of csr instructions)
+    localparam [1 : 0]
+        CSR_OP_NONE =	2'b00,
+        CSR_OP_WR =     2'b01,
+        CSR_OP_S =      2'b10,
+        CSR_OP_C =		2'b11;
+
     reg [DWIDTH - 1 : 0]         csr_rd_data_p;
 
     always @(posedge clk)
-        if (csr_op != `CSR_OP_NONE)
+        if (csr_op != CSR_OP_NONE)
             csr_rd_data <= csr_rd_data_p;
 
-    wire    csr_mod = csr_op != `CSR_OP_NONE;
+    wire    csr_mod = csr_op != CSR_OP_NONE;
 
-    wire [DWIDTH - 1 : 0] csr_bits_set = (csr_op == `CSR_OP_C ? 'd0 :
+    wire [DWIDTH - 1 : 0] csr_bits_set = (csr_op == CSR_OP_C ? 'd0 :
                                           csr_wr_data);
-    wire [DWIDTH - 1 : 0] csr_bits_clr = (csr_op == `CSR_OP_WR ? ~csr_wr_data :
-                                          (csr_op == `CSR_OP_S ? 'd0 :
+    wire [DWIDTH - 1 : 0] csr_bits_clr = (csr_op == CSR_OP_WR ? ~csr_wr_data :
+                                          (csr_op == CSR_OP_S ? 'd0 :
                                            csr_wr_data));
 
 
@@ -110,7 +114,7 @@ module riscv_csr #(parameter DWIDTH = 32,
     always @(posedge clk)
         if (reset)
             cycle_reg <= 'd0;
-        else if (csr_mod && csr_reg == `CSR_M_CYCLE)
+        else if (csr_mod && csr_reg == CSR_M_CYCLE)
             cycle_reg <= ((cycle_reg + 1'b1) & ~csr_bits_clr) | csr_bits_set;
         else
             cycle_reg <= cycle_reg + 1'b1;
@@ -118,7 +122,7 @@ module riscv_csr #(parameter DWIDTH = 32,
     always @(posedge clk)
         if (reset)
             cycleh_reg <= 'd0;
-        else if (csr_mod && csr_reg == `CSR_M_CYCLEH)
+        else if (csr_mod && csr_reg == CSR_M_CYCLEH)
             cycleh_reg <= ((cycleh_reg + cycle_c) & ~csr_bits_clr) |
                           csr_bits_set;
         else
@@ -132,7 +136,7 @@ module riscv_csr #(parameter DWIDTH = 32,
     always @(posedge clk)
         if (reset)
             instret_reg <= 'd0;
-        else if (csr_mod && csr_reg == `CSR_M_INSTRET)
+        else if (csr_mod && csr_reg == CSR_M_INSTRET)
             instret_reg <= ((instret_reg + inc_instret) & ~csr_bits_clr) |
                            csr_bits_set;
         else
@@ -141,7 +145,7 @@ module riscv_csr #(parameter DWIDTH = 32,
     always @(posedge clk)
         if (reset)
             instreth_reg <= 'd0;
-        else if (csr_mod && csr_reg == `CSR_M_INSTRETH)
+        else if (csr_mod && csr_reg == CSR_M_INSTRETH)
             instreth_reg <= ((instreth_reg + instret_c) & ~csr_bits_clr) |
                             csr_bits_set;
         else
@@ -152,7 +156,7 @@ module riscv_csr #(parameter DWIDTH = 32,
     always @(posedge clk)
         if (reset)
             mscratch_reg <= 'd0;
-        else if (csr_mod && csr_reg == `CSR_M_SCRATCH)
+        else if (csr_mod && csr_reg == CSR_M_SCRATCH)
             mscratch_reg <= (mscratch_reg & ~csr_bits_clr) | csr_bits_set;
 
     // MSTATUS register
@@ -167,7 +171,7 @@ module riscv_csr #(parameter DWIDTH = 32,
             mie <= 0;
         else if (do_mret)
             mie <= mpie;
-        else if (csr_mod && csr_reg == `CSR_M_STATUS)
+        else if (csr_mod && csr_reg == CSR_M_STATUS)
             mie <= (mie && !csr_bits_clr[3]) || csr_bits_set[3];
 
     always @(posedge clk)
@@ -175,7 +179,7 @@ module riscv_csr #(parameter DWIDTH = 32,
             mpie <= 0;
         else if (do_exception)
             mpie <= mie;
-        else if (csr_mod && csr_reg == `CSR_M_STATUS)
+        else if (csr_mod && csr_reg == CSR_M_STATUS)
             mpie <= (mpie && !csr_bits_clr[7]) || csr_bits_set[7];
 
     // MIE register
@@ -190,7 +194,7 @@ module riscv_csr #(parameter DWIDTH = 32,
             mtie <= 0;
             msie <= 0;
         end
-        else if (csr_mod && csr_reg == `CSR_M_IE) begin
+        else if (csr_mod && csr_reg == CSR_M_IE) begin
             meie <= (meie && !csr_bits_clr[11]) || csr_bits_set[11];
             mtie <= (mtie && !csr_bits_clr[7]) || csr_bits_set[7];
             msie <= (msie && !csr_bits_clr[3]) || csr_bits_set[3];
@@ -204,7 +208,7 @@ module riscv_csr #(parameter DWIDTH = 32,
     always @(posedge clk)
         if (reset)
             msip <= 0;
-        else if (csr_mod && csr_reg == `CSR_M_IP)
+        else if (csr_mod && csr_reg == CSR_M_IP)
             msip <= (msip && !csr_bits_clr[3]) || csr_bits_set[3];
 
     assign interrupt = mie && ((meie && meip) || (mtie && mtip) ||
@@ -217,7 +221,7 @@ module riscv_csr #(parameter DWIDTH = 32,
             mepc_reg <= 'd0;
         else if (do_exception)
             mepc_reg <= exc_pc;
-        else if (csr_mod && csr_reg == `CSR_M_EPC)
+        else if (csr_mod && csr_reg == CSR_M_EPC)
             mepc_reg <= (mepc_reg & ~csr_bits_clr) | csr_bits_set;
 
     assign mret_pc = mepc_reg;
@@ -246,7 +250,7 @@ module riscv_csr #(parameter DWIDTH = 32,
             mtval_reg <= 'd0;
         else if (badaddr_set)
             mtval_reg <= badaddr;
-        else if (csr_mod && csr_reg == `CSR_M_TVAL)
+        else if (csr_mod && csr_reg == CSR_M_TVAL)
             mtval_reg <= (mtval_reg & ~csr_bits_clr) | csr_bits_set;
 
     ///// MTVEC
@@ -255,47 +259,47 @@ module riscv_csr #(parameter DWIDTH = 32,
     always @(posedge clk)
         if (reset)
             mtvec_reg <= MTVEC[AWIDTH - 1 : 2];
-        else if (csr_mod && csr_reg == `CSR_M_TVEC)
+        else if (csr_mod && csr_reg == CSR_M_TVEC)
             mtvec_reg <= (mtvec_reg & ~csr_bits_clr[AWIDTH - 1 : 2]) |
                          csr_bits_set[AWIDTH - 1 : 2];
 
     //////////////////// Read Mux /////////////////////////
     always @(*)
         case (csr_reg)
-            `CSR_M_CYCLE:
+            CSR_M_CYCLE:
                 csr_rd_data_p = cycle_reg;
-            `CSR_M_CYCLEH:
+            CSR_M_CYCLEH:
                 csr_rd_data_p = cycleh_reg;
-            `CSR_M_INSTRET:
+            CSR_M_INSTRET:
                 csr_rd_data_p = instret_reg;
-            `CSR_M_INSTRETH:
+            CSR_M_INSTRETH:
                 csr_rd_data_p = instreth_reg;
 
-            `CSR_M_SCRATCH:
+            CSR_M_SCRATCH:
                 csr_rd_data_p = mscratch_reg;
 
-            `CSR_M_ISA:
-                csr_rd_data_p = `CPU_MISA;
-            `CSR_M_HARTID:
+            CSR_M_ISA:
+                csr_rd_data_p = CPU_MISA;
+            CSR_M_HARTID:
                 csr_rd_data_p = {{DWIDTH - 8{1'b0}}, HART_ID};
 
-            `CSR_M_STATUS:
+            CSR_M_STATUS:
                 csr_rd_data_p = mstatus_reg;
-            `CSR_M_IE:
+            CSR_M_IE:
                 csr_rd_data_p = mie_reg;
-            `CSR_M_IP:
+            CSR_M_IP:
                 csr_rd_data_p = mip_reg;
-            `CSR_M_EPC:
+            CSR_M_EPC:
                 csr_rd_data_p = mepc_reg;
-            `CSR_M_CAUSE:
+            CSR_M_CAUSE:
                 csr_rd_data_p = mcause_reg;
-            `CSR_M_TVAL:
+            CSR_M_TVAL:
                 csr_rd_data_p = mtval_reg;
-            `CSR_M_TVEC:
+            CSR_M_TVEC:
                 csr_rd_data_p = mtvec;
 
             default:
                 csr_rd_data_p = 'd0;
         endcase // case (csr_reg)
 
-endmodule
+endmodule // riscv_csr
