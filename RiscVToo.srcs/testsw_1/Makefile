@@ -10,7 +10,7 @@ else
 endif
 BIN2HEX=/usr/bin/hexdump -v -e '/4 "%08X\n"'
 
-TESTS=test_too test1 test2 test3 testcsr
+TESTS=test1 test2 test3 testcsr test_too test_timer
 
 TARGETS=$(TESTS:=.lst) $(TESTS:=.mem)
 OBJS=$(TESTS:=.o)
