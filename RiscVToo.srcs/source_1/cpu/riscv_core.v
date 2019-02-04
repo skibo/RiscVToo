@@ -679,7 +679,7 @@ module riscv_core #(parameter DWIDTH = 32,
             exc_reason = EXC_ILLEGAL_INSTR;
         else if (interrupt) begin
             exc_intr = 1;
-            exc_pc = pc_d;
+            exc_pc = do_branch ? br_target : pc_d;
         end
         else if (ecall_e)
             exc_reason = EXC_CALL_M;
