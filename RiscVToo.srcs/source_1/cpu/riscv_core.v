@@ -66,7 +66,7 @@ module riscv_core #(parameter DWIDTH = 32,
 
     localparam [6 : 0]
         // Opcode field in bits 6 : 0 in instruction.
-        OP_LUI =	7'b0110111,
+        OP_LUI =    7'b0110111,
         OP_AUIPC =  7'b0010111,
         OP_JAL =    7'b1101111,
         OP_JALR =   7'b1100111,
@@ -80,19 +80,19 @@ module riscv_core #(parameter DWIDTH = 32,
 
     localparam [2 : 0]
         // ALU funct3, bits 14 : 12 in ALU instructions
-        ALU_ADD_SUB =	3'b000,
+        ALU_ADD_SUB =   3'b000,
         ALU_SLL =       3'b001,
         ALU_SLT =       3'b010,
         ALU_SLTU =      3'b011,
         ALU_XOR =       3'b100,
-        ALU_SRA_SRL =	3'b101,
+        ALU_SRA_SRL =   3'b101,
         ALU_OR =        3'b110,
         ALU_AND =       3'b111;
 
     localparam [2 : 0]
         // Condition branch funct3, bits 14 : 12 in BR instructions
-        BR_EQ =		3'b000,
-        BR_NE =		3'b001,
+        BR_EQ =     3'b000,
+        BR_NE =     3'b001,
         BR_LT =     3'b100,
         BR_GE =     3'b101,
         BR_LTU =    3'b110,
@@ -100,7 +100,7 @@ module riscv_core #(parameter DWIDTH = 32,
 
     localparam [2 : 0]
         // Load width funct3, bits 14 : 12 in LOAD instructions
-        LD_B =		3'b000,
+        LD_B =      3'b000,
         LD_H =      3'b001,
         LD_W =      3'b010,
         LD_BU =     3'b100,
@@ -119,7 +119,7 @@ module riscv_core #(parameter DWIDTH = 32,
 
     localparam [3 : 0]
         // Exception Reasons
-        EXC_INSTR_ADDR_MISALIGNED =	4'd0,
+        EXC_INSTR_ADDR_MISALIGNED = 4'd0,
         EXC_INSTR_FAULT =           4'd1,
         EXC_ILLEGAL_INSTR =         4'd2,
         EXC_BREAKPOINT =            4'd3,

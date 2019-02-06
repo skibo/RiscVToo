@@ -50,12 +50,12 @@ module riscv_too_local_io #(parameter DWIDTH = 32,
         MTIMECMP_ADDR =     'h0008,
         MTIMECMPH_ADDR =    'h000c;
 
-    reg [DWIDTH - 1 : 0]	mtime;
+    reg [DWIDTH - 1 : 0]    mtime;
     reg [DWIDTH - 1 : 0]    mtimeh;
     reg [DWIDTH - 1 : 0]    mtimecmp;
     reg [DWIDTH - 1 : 0]    mtimecmph;
 
-    wire	wr = locio_addr_valid && locio_wr;
+    wire    wr = locio_addr_valid && locio_wr;
 
     // MTIME
     always @(posedge clk)
@@ -66,7 +66,7 @@ module riscv_too_local_io #(parameter DWIDTH = 32,
         else
             mtime <= mtime + 1;
 
-    wire	mtime_c_p1 = (mtime == {DWIDTH{1'b1}} - 1'b1);
+    wire    mtime_c_p1 = (mtime == {DWIDTH{1'b1}} - 1'b1);
     reg     mtime_c;
 
     always @(posedge clk)

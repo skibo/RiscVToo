@@ -120,7 +120,7 @@ module riscv_too_glue #(
 
     // Fixed AXI write signals.
     assign M_AXI_AWID = 0;
-    assign M_AXI_AWLEN = 8'd0;		// single word writes
+    assign M_AXI_AWLEN = 8'd0;      // single word writes
     assign M_AXI_AWSIZE = 3'b010;   // 4 bytes per clock
     assign M_AXI_AWBURST = 2'b01;   // INCR
     assign M_AXI_AWLOCK = 1'b0;
@@ -131,7 +131,7 @@ module riscv_too_glue #(
     // Fixed AXI read channel signals.
     assign M_AXI_ARID = 0;
     assign M_AXI_ARSIZE = 3'b010;   // 4 bytes per clock
-    assign M_AXI_ARLEN = 8'd0;		// single word reads
+    assign M_AXI_ARLEN = 8'd0;      // single word reads
     assign M_AXI_ARBURST = 2'b01;   // INCR
     assign M_AXI_ARLOCK = 1'b0;
     assign M_AXI_ARCACHE = 4'b0000; // normal non-cacheable non-bufferable
@@ -156,7 +156,7 @@ module riscv_too_glue #(
         else
             i_fault <= i_addr_valid && i_addr >= MEMSIZE;
 
-    wire	d_addr_ismem = d_addr_valid && d_addr < MEMSIZE;
+    wire    d_addr_ismem = d_addr_valid && d_addr < MEMSIZE;
     reg     d_data_ismem;
     always @(posedge clk)
         if (reset)
@@ -166,7 +166,7 @@ module riscv_too_glue #(
 
     assign d_we_mem = d_addr_ismem && d_we && d_addr >= ROMSIZE;
 
-    wire	d_addr_islocio = d_addr_valid &&
+    wire    d_addr_islocio = d_addr_valid &&
             (d_addr >= LOCIO_ADDR && d_addr < LOCIO_ADDR + LOCIO_SIZE);
     assign  locio_wr = d_addr_islocio && d_we;
     assign  locio_data_wr = d_data_wr;
@@ -180,7 +180,7 @@ module riscv_too_glue #(
         else
             d_data_islocio <= d_addr_islocio && !d_we;
 
-    wire	d_addr_isaxi = d_addr_valid && !d_addr_ismem && !d_addr_islocio;
+    wire    d_addr_isaxi = d_addr_valid && !d_addr_ismem && !d_addr_islocio;
 
     // Read mux
     assign d_data_rd = d_data_ismem ? d_data_rd_mem :
@@ -211,9 +211,9 @@ module riscv_too_glue #(
 
     // AXI Read state machine.
     parameter [1 : 0]
-        RSM_IDLE =		2'd0,
-        RSM_RADDR =		2'd1,
-        RSM_RDATA =		2'd2;
+        RSM_IDLE =      2'd0,
+        RSM_RADDR =     2'd1,
+        RSM_RDATA =     2'd2;
 
     reg [1 : 0] rsm;
 
@@ -263,10 +263,10 @@ module riscv_too_glue #(
 
     // AXI Write state machine.
     parameter [1 : 0]
-        WSM_IDLE =		2'd0,
-        WSM_WADDR =		2'd1,
-        WSM_WDATA =		2'd2,
-        WSM_WRESP =		2'd3;
+        WSM_IDLE =      2'd0,
+        WSM_WADDR =     2'd1,
+        WSM_WDATA =     2'd2,
+        WSM_WRESP =     2'd3;
 
     reg [1 : 0] wsm;
 

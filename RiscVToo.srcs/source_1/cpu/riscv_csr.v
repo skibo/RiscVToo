@@ -54,7 +54,7 @@ module riscv_csr #(parameter DWIDTH = 32,
 
     localparam [11 : 0]
         // Machine Info Registers
-        CSR_M_VENDORID =	12'hF11,
+        CSR_M_VENDORID =    12'hF11,
         CSR_M_ARCHID =      12'hF12,
         CSR_M_IMPID =       12'hF13,
         CSR_M_HARTID =      12'hF14,
@@ -69,7 +69,7 @@ module riscv_csr #(parameter DWIDTH = 32,
         CSR_M_COUNTEREN =   12'h306,
 
         // Machine Trap Handling
-        CSR_M_SCRATCH =		12'h340,
+        CSR_M_SCRATCH =     12'h340,
         CSR_M_EPC =         12'h341,
         CSR_M_CAUSE =       12'h342,
         CSR_M_TVAL =        12'h343,
@@ -77,20 +77,20 @@ module riscv_csr #(parameter DWIDTH = 32,
 
         // Machine Timers and Counters
         CSR_M_CYCLE =       12'hB00,
-        CSR_M_INSTRET =		12'hB02,
+        CSR_M_INSTRET =     12'hB02,
         CSR_M_CYCLEH =      12'hB80,
         CSR_M_INSTRETH =    12'hB82;
 
     localparam [31 : 0]
         // Value in MISA register: rv32i
-        CPU_MISA =	32'h4000_0100;
+        CPU_MISA =  32'h4000_0100;
 
     // CSR "operations" (bits 13:12 of csr instructions)
     localparam [1 : 0]
-        CSR_OP_NONE =	2'b00,
+        CSR_OP_NONE =   2'b00,
         CSR_OP_WR =     2'b01,
         CSR_OP_S =      2'b10,
-        CSR_OP_C =		2'b11;
+        CSR_OP_C =      2'b11;
 
     reg [DWIDTH - 1 : 0]         csr_rd_data_p;
 
