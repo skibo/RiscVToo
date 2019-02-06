@@ -85,6 +85,12 @@ module riscv_csr #(parameter DWIDTH = 32,
         // Value in MISA register: rv32i
         CPU_MISA =  32'h4000_0100;
 
+    localparam [3 : 0]
+        // Interrupt reasons in mcause register.
+        INTR_REASON_M_SW_INTR =     4'd3,
+        INTR_REASON_M_TIMER_INTR =  4'd7,
+        INTR_REASON_M_EXT_INTR =    4'd11;
+
     // CSR "operations" (bits 13:12 of csr instructions)
     localparam [1 : 0]
         CSR_OP_NONE =   2'b00,
@@ -227,11 +233,23 @@ module riscv_csr #(parameter DWIDTH = 32,
     assign mret_pc = mepc_reg;
 
     ///// MCAUSE
-    // XXX: I haven't implemented exception codes for interrupts.
     reg                   mcause_intr;
     reg [3 : 0]           mcause_exc;
     wire [DWIDTH - 1 : 0] mcause_reg = {mcause_intr, {(DWIDTH - 5){1'b0}},
-                                        mcause_intr ? 4'd0 : mcause_exc};
+                                        mcause_exc};
+
+    reg [3 : 0]           intr_reason;
+    always @(*) begin
+        intr_reason = 4'hf; // XXX: no default non-reason?
+        if (interrupt) begin
+            if (msie && msip)
+                intr_reason = INTR_REASON_M_SW_INTR;
+            else if (mtie && mtip)
+                intr_reason = INTR_REASON_M_TIMER_INTR;
+            else if (meie && meip)
+                intr_reason = INTR_REASON_M_EXT_INTR;
+        end
+    end
 
     always @(posedge clk)
         if (reset) begin
@@ -239,7 +257,7 @@ module riscv_csr #(parameter DWIDTH = 32,
             mcause_exc <= 'd0;
         end
         else if (do_exception) begin
-            mcause_exc <= exc_reason;
+            mcause_exc <= exc_intr ? intr_reason : exc_reason;
             mcause_intr <= exc_intr;
         end
 

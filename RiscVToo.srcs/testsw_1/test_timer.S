@@ -81,10 +81,17 @@ _except:
 
         csrr    t0, mcause
         bge     t0, zero, notint
+
+        /* Check reason. */
+        and     t0, t0, 15
+        li      t1, 7
+        bne     t0, t1, fail
+
+        /* Check mtip. */
         csrr    t0, mip
         andi    t0, t0, 1 << 7
         beq     t0, zero, fail
-        
+
         /* New timer value.  Stop test timer >= 0x4000 */
         li      t0, 0x20000
 1:
