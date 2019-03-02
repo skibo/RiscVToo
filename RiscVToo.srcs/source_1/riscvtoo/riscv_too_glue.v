@@ -248,9 +248,11 @@ module riscv_too_glue #(
             endcase
 
     assign d_data_rd_valid = d_data_ismem || d_data_islocio ||
-                        ((rsm == RSM_RDATA) && M_AXI_RVALID && M_AXI_RLAST);
+                             ((rsm == RSM_RDATA) && M_AXI_RVALID &&
+                              M_AXI_RLAST && M_AXI_RRESP == 2'b00);
 
-    wire d_rd_fault = (rsm == RSM_RDATA) && M_AXI_RVALID && M_AXI_RRESP != 2'b00;
+    wire d_rd_fault = (rsm == RSM_RDATA) && M_AXI_RVALID &&
+         M_AXI_RRESP != 2'b00;
 
     // Register write data and be for AXI transactions
     reg [DWIDTH - 1 : 0]        d_data_wr_1;
@@ -315,10 +317,12 @@ module riscv_too_glue #(
 
             endcase // case (wsm)
 
-    wire d_wr_done_axi = (wsm == WSM_WRESP) && M_AXI_BVALID;
+    wire d_wr_done_axi = (wsm == WSM_WRESP) && M_AXI_BVALID &&
+         M_AXI_BRESP == 2'b00;
     assign d_wr_done = d_wr_done_mem || d_wr_done_locio || d_wr_done_axi;
 
-    wire d_wr_fault = d_wr_rom_fault || d_wr_done_axi && M_AXI_BRESP != 2'b00;
+    wire d_wr_fault = d_wr_rom_fault ||
+         ((wsm == WSM_WRESP) && M_AXI_BVALID && M_AXI_BRESP != 2'b00);
     assign d_fault = d_rd_fault || d_wr_fault;
 
 endmodule // riscv_too_glue

@@ -184,7 +184,7 @@ success:
 1:
         j       1b
 
-/* Exception handler. */
+/* Exception handler.  NOTE: clobbers t1,t2, and t3. */
 _except:
         li	t1, 0x1111
         la      t2, xnum
@@ -205,9 +205,6 @@ _except:
         sw      zero, 8(t3)
         j       4f
 3:
-        /* XXX: On failed reads and writes to AXI, mepc if off by 4.  Fix this
-        * later. */
-        addi    t1, t1, -4
         la      t3, badrd1
         beq     t1, t3, 4f
         la      t3, badwr1

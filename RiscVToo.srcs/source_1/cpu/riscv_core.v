@@ -615,13 +615,13 @@ module riscv_core #(parameter DWIDTH = 32,
           i_data[6 : 0] == OP_ALUR);
 
     always @(posedge clk)
-        if (reset || (d_data_rd_valid || csr_m) && load_hazard_a_em)
+        if (reset || (d_data_rd_valid || d_fault || csr_m) && load_hazard_a_em)
             load_hazard_a_em <= 0;
         else if (!stall && load_hazard_a_de)
             load_hazard_a_em <= 1;
 
     always @(posedge clk)
-        if (reset || (d_data_rd_valid || csr_m) && load_hazard_b_em)
+        if (reset || (d_data_rd_valid || d_fault || csr_m) && load_hazard_b_em)
             load_hazard_b_em <= 0;
         else if (!stall && load_hazard_b_de)
             load_hazard_b_em <= 1;
