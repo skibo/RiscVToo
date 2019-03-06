@@ -32,6 +32,7 @@
 #    "./RiscVToo.srcs/source_1/cpu/riscv_csr.v"
 #    "./RiscVToo.srcs/source_1/cpu/riscv_regfile.v"
 #    "./RiscVToo.srcs/source_1/riscvtoo/riscv_too_glue.v"
+#    "./RiscVToo.srcs/source_1/riscvtoo/riscv_too_local_io.v"
 #    "./RiscVToo.srcs/source_1/riscvtoo/riscv_too_mem.v"
 #    "./RiscVToo.srcs/source_1/riscvtoo/riscv_too.v"
 #    "./component.xml"
@@ -170,6 +171,7 @@ set files [list \
  [file normalize "${origin_dir}/RiscVToo.srcs/source_1/cpu/riscv_csr.v"] \
  [file normalize "${origin_dir}/RiscVToo.srcs/source_1/cpu/riscv_regfile.v"] \
  [file normalize "${origin_dir}/RiscVToo.srcs/source_1/riscvtoo/riscv_too_glue.v"] \
+ [file normalize "${origin_dir}/RiscVToo.srcs/source_1/riscvtoo/riscv_too_local_io.v"] \
  [file normalize "${origin_dir}/RiscVToo.srcs/source_1/riscvtoo/riscv_too_mem.v"] \
  [file normalize "${origin_dir}/RiscVToo.srcs/source_1/riscvtoo/riscv_too.v"] \
  [file normalize "${origin_dir}/component.xml"] \
