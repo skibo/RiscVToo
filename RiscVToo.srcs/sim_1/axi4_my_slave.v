@@ -31,7 +31,7 @@ module axi4_my_slave # (
                         parameter integer C_S_AXI_DATA_WIDTH = 32,
                         parameter integer MEMSIZE = 8192,
                         parameter INIT_FILE = "",
-                        parameter [3:0] WAITMASK = 4'd1  // 0 = no waits. 15 = max waits
+                        parameter integer WAITRANGE = 1 // 0..15
                         ) (
                         input                                 S_AXI_ACLK,
                         input                                 S_AXI_ARESETN,
@@ -85,10 +85,10 @@ module axi4_my_slave # (
     reg [C_S_AXI_DATA_WIDTH-1 : 0] mem[MEMSIZE-1 : 0];
 
     initial begin:reads
-        reg [3:0] r;
         reg [C_S_AXI_ADDR_WIDTH-1 : 0] addr;
         reg [C_S_AXI_ID_WIDTH-1 : 0] id;
         reg [7:0] len;
+        integer   r;
         integer   i;
 
         for (i = 0; i < MEMSIZE / (C_S_AXI_DATA_WIDTH / 8); i = i + 1)
@@ -96,7 +96,7 @@ module axi4_my_slave # (
 
         if (INIT_FILE != "")
             $readmemh(INIT_FILE, mem);
-        
+
         S_AXI_ARREADY = 1'b0;
         S_AXI_RDATA = {C_S_AXI_DATA_WIDTH{1'b0}};
         S_AXI_RVALID = 1'b0;
@@ -109,7 +109,7 @@ module axi4_my_slave # (
         repeat (20) @(posedge clk);
 
         forever begin
-            r = WAITMASK & $random;
+            r = $urandom_range(WAITRANGE, 0);
             repeat (r) @(posedge clk);
             S_AXI_ARREADY <= 1'b1;
             @(posedge clk);
@@ -121,13 +121,13 @@ module axi4_my_slave # (
             id = S_AXI_ARID;
             len = S_AXI_ARLEN + 1;
             addr = S_AXI_ARADDR;
-            
+
             S_AXI_ARREADY <= 1'b0;
-            
+
             S_AXI_RID <= id;
             for (i = 0; i < len; i = i + 1) begin
-                r = WAITMASK & $random;
-                repeat (r[1:0]) @(posedge clk);
+                r = $urandom_range(WAITRANGE, 0);
+                repeat (r) @(posedge clk);
                 S_AXI_RVALID <= 1'b1;
                 S_AXI_RLAST <= (i == len - 1);
                 if (addr < MEMSIZE)
@@ -149,15 +149,16 @@ module axi4_my_slave # (
     end
 
     initial begin:writes
-        reg [3:0] r1, r2;
         reg [C_S_AXI_ADDR_WIDTH-1 : 0] addr;
         reg [C_S_AXI_DATA_WIDTH-1 : 0] data;
         reg [C_S_AXI_ID_WIDTH-1 : 0] id;
         reg [7:0] len;
         reg       islast;
         reg       gotaddr;
+        integer   r1;
+        integer   r2;
         integer   i, j;
-        
+
         S_AXI_AWREADY = 1'b0;
         S_AXI_WREADY = 1'b0;
         S_AXI_BRESP = 2'b00;
@@ -172,14 +173,14 @@ module axi4_my_slave # (
         forever begin
             fork
                 begin // Address channel.
-                    r1 = WAITMASK & $random;
+                    r1 = $urandom_range(WAITRANGE, 0);
                     repeat (r1) @(posedge clk);
                     S_AXI_AWREADY <= 1'b1;
                     @(posedge clk);
-                    
+
                     while (!S_AXI_AWVALID)
                         @(posedge clk);
-                    
+
                     $display("[%t] axi4_my_slave: Got write address 0x%h id=0x%h len=0x%h", $time,
                              S_AXI_AWADDR, S_AXI_AWID, S_AXI_AWLEN);
                     addr = S_AXI_AWADDR;
@@ -192,12 +193,12 @@ module axi4_my_slave # (
                     i = 0;
                     islast = 0;
                     while (!islast) begin
-                        r2 = WAITMASK & $random;
+                        r2 = $urandom_range(WAITRANGE, 0);
                         repeat (r2) @(posedge clk);
-                        
+
                         S_AXI_WREADY <= 1'b1;
                         @(posedge clk);
-                    
+
                         while (!S_AXI_WVALID)
                             @(posedge clk);
                         if (!gotaddr) begin
@@ -237,6 +238,6 @@ module axi4_my_slave # (
             S_AXI_BID <= {C_S_AXI_ID_WIDTH{1'bx}};
         end // forever begin
     end // block: writes
-    
-    
+
+
 endmodule // axi4_my_slave

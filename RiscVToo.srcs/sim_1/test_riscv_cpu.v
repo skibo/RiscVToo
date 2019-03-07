@@ -32,7 +32,7 @@ module test_riscv_cpu;
         IMEM_SIZE = 2048,
         DMEM_DELAYS = 1,
         IMEM_DELAYS = 1,
-        MEM_INIT_FILE = "test3.mem",
+        MEM_INIT_FILE = "test1.mem",
         IBUS_VERBOSE = 0;
 
     wire [31 : 0]   i_addr;
@@ -40,7 +40,7 @@ module test_riscv_cpu;
     reg [31 : 0]    i_data;
     reg             i_data_valid;
     reg             i_fault;
-    
+
     wire [31 : 0]   d_addr;
     wire            d_addr_valid;
     reg [31 : 0]    d_data_rd;
@@ -52,9 +52,11 @@ module test_riscv_cpu;
     reg             d_fault;
 
     reg             extirq;
-    
+
     reg             reset;
     reg             clk;
+
+    reg             test_pass;
 
     initial begin
         i_data = 'd0;
@@ -65,10 +67,12 @@ module test_riscv_cpu;
         d_fault = 0;
         d_wr_done = 1;
         extirq = 0;
-        
+
         reset = 1;
         clk = 0;
-        
+
+        test_pass = 0;
+
         repeat (20) @(posedge clk);
         reset <= 0;
     end
@@ -78,20 +82,24 @@ module test_riscv_cpu;
     reg [31 : 0] imem[(IMEM_SIZE / 4) - 1 : 0];
     reg [31 : 0] dmem[(DMEM_SIZE / 4) - 1 : 0];
 
-    initial $readmemh(MEM_INIT_FILE, imem);
+    initial begin
+        $display("test_riscv_cpu: Starting simulation with MEM_INIT_FILE=%s",
+                 MEM_INIT_FILE);
+        $readmemh(MEM_INIT_FILE, imem);
+    end
 
     // Read logic, IMEM
     always @(posedge clk) begin:iblk
         reg [31 : 0] i_addr_1;
         reg [1 : 0]  r;
-        
+
         if (i_addr_valid && !reset && !i_fault) begin
             i_fault <= 0;
             i_addr_1 = i_addr;
 
             if (IMEM_DELAYS) begin
                 // Delay?
-                r = $random;
+                r = $urandom_range(3, 0);
                 if (r != 2'd0) begin
                     i_data_valid <= 0;
                     i_data <= 32'hXXXX_XXXX;
@@ -113,7 +121,7 @@ module test_riscv_cpu;
             else begin
                 i_data <= 32'hXXXX_XXXX;
                 i_fault <= 1;
-            end            
+            end
         end
         else
             i_fault <= 0;
@@ -130,19 +138,19 @@ module test_riscv_cpu;
             if (i_fault)
                 $display("[%t] I: fault at addr %h", $time, iaddr_1);
         end
-    
+
     //  Read logic, DMEM
     reg [31 : 0]        d_addr_1;
     always @(posedge clk) begin:rblk
         reg [1 : 0] r;
-        
+
         if (d_addr_valid && !d_we) begin
             d_addr_1 = d_addr;
             d_fault <= 0;
-            
+
             if (DMEM_DELAYS) begin
                 // Delay?
-                r = $random;
+                r = $urandom_range(3, 0);
                 if (r != 2'd0) begin
                     d_data_rd_valid <= 0;
                     d_data_rd <= 32'hXXXX_XXX;
@@ -156,7 +164,7 @@ module test_riscv_cpu;
                     end
                 end
             end
-            
+
             if (d_addr_1 < DMEM_SIZE) begin
                 d_data_rd <= dmem[d_addr_1[31 : 2]];
                 d_data_rd_valid <= 1;
@@ -179,7 +187,7 @@ module test_riscv_cpu;
             while (!d_addr_valid)
                 @(posedge clk);
         end
-    
+
     // Write logic.
     always @(posedge clk) begin:wr_block
         reg [31 : 0] dataw2;
@@ -195,7 +203,7 @@ module test_riscv_cpu;
 
             if (DMEM_DELAYS) begin
                 // Write delay?
-                r = $random;
+                r = $urandom_range(3, 0);
                 if (r != 2'd0) begin
                     d_wr_done <= 0;
                     repeat (r) begin
@@ -208,10 +216,10 @@ module test_riscv_cpu;
                     end
                 end
             end
-            
+
             $display("[%t] D: write %h to %h be=%b", $time,
                      dataw2, addrw2, bew2);
-            
+
             if (addrw2 < DMEM_SIZE) begin
                 // D memory
                 temp = dmem[addrw2[31 : 2]];
@@ -224,7 +232,7 @@ module test_riscv_cpu;
                 if (bew2[0])
                     temp[7 : 0] = dataw2[7 : 0];
                 dmem[addrw2[31 : 2]] = temp;
-                
+
                 d_wr_done <= 1;
             end
             else if (addrw2 == 32'h0000_0f00) begin
@@ -235,6 +243,7 @@ module test_riscv_cpu;
                 //  else - stop with error.
                 if(dataw2 == 32'd2) begin
                     $display("[%t] --- SUCCESS!  Test finished.", $time);
+                    test_pass = 1;
                     $finish;
                 end
                 else if (dataw2 != 32'd0 && dataw2 != 32'd999) begin
@@ -257,9 +266,9 @@ module test_riscv_cpu;
     always @(posedge clk)
         if (d_addr_valid && d_we && d_addr == 32'h0000_0f00 &&
             d_data_wr == 32'd999) begin
-            
+
             repeat (30) @(posedge clk);
-            
+
             $display("[%t] Starting interrupt request.", $time);
             extirq <= 1;
 
@@ -274,7 +283,7 @@ module test_riscv_cpu;
                           .i_data(i_data),
                           .i_data_valid(i_data_valid),
                           .i_fault(i_fault),
-        
+
                           .d_addr(d_addr),
                           .d_addr_valid(d_addr_valid),
                           .d_data_rd(d_data_rd),
@@ -286,10 +295,9 @@ module test_riscv_cpu;
                           .d_fault(d_fault),
 
                           .extirq(extirq),
-        
+
                           .reset(reset),
                           .clk(clk)
                       );
-    
-endmodule // test_riscv_cpu
 
+endmodule // test_riscv_cpu

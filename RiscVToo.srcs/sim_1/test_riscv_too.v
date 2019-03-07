@@ -38,6 +38,7 @@ module test_riscv_too;
     parameter integer C_M00_AXI_BUSER_WIDTH = 0;
 
     parameter MEM_INIT_FILE = "test_too.mem";
+    parameter WAITRANGE = 1; // 0..15 (passed on to axi4_my_slave
 
     reg               M_AXI_ACLK;
     reg               M_AXI_ARESETN;
@@ -82,11 +83,16 @@ module test_riscv_too;
 
     reg                                 extirq;
 
+    reg                                 test_pass;
 
     initial begin
+        $display("test_riscv_too.v: Starting simulation with MEM_INIT_FILE=%s",
+                 MEM_INIT_FILE);
+
         M_AXI_ACLK = 0;
         M_AXI_ARESETN = 0;
         extirq = 0;
+        test_pass = 0;
 
         // wait 20 clocks and release reset
         repeat (20) @(posedge M_AXI_ACLK);
@@ -140,7 +146,8 @@ module test_riscv_too;
         .extirq(extirq)
     );
 
-    axi4_my_slave #(.MEMSIZE(32768))
+    axi4_my_slave #(.MEMSIZE(32768),
+                    .WAITRANGE(WAITRANGE))
     axi4_my_slave_0(
                                   .S_AXI_ACLK(M_AXI_ACLK),
                                   .S_AXI_ARESETN(M_AXI_ARESETN),
@@ -205,6 +212,7 @@ module test_riscv_too;
                     $display("[%t] wrote 0 to 0xf0000.  continuing", $time);
                 'd2: begin // success!
                     $display("[%t] wrote 2 to 0xf0000!  SUCCESS!", $time);
+                    test_pass = 1;
                     $finish;
                 end
                 default: begin // fail!

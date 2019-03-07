@@ -15,14 +15,14 @@ endif
 
 VIVADO=$(XILINX_VIVADO)/bin/vivado
 
-.PHONY: default project 
+.PHONY: default project runtests
 
 default: project
 
 PROJFILE=$(PROJNAME)/$(PROJNAME).xpr
 
 # Mem files for small tests and simulation.
-TESTS=test1
+TESTS=test1 test2 test3 testcsr test_timer test_too
 TESTMEMFILES=$(addprefix $(SRCDIR)/testsw_1/, $(TESTS:=.mem))
 
 project: $(PROJFILE)
@@ -36,3 +36,6 @@ endif
 
 $(TESTMEMFILES):
 	(cd $(SRCDIR)/testsw_1 ; $(MAKE))
+
+runtests: $(TESTMEMFILES)
+	$(VIVADO) -mode batch -source $(SRCDIR)/scripts/runtests.tcl

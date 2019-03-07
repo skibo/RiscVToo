@@ -25,15 +25,11 @@
 // SUCH DAMAGE.
 //
 
-`ifndef MEMFILE
-`error "Please define MEMFILE to path of test memfile."
-`endif
-
 module test_riscv_compl;
 
     parameter
         MEM_SIZE = 32768,
-        MEM_INIT_FILE = `MEMFILE,
+        MEM_INIT_FILE = "xxx",	// Must be set externally.
         IBUS_VERBOSE = 0;
 
     wire [31 : 0]   i_addr;
@@ -57,8 +53,10 @@ module test_riscv_compl;
     reg             reset;
     reg             clk;
 
+    reg             test_pass;
+
     initial begin
-        $display("STARTING TEST: %s", MEM_INIT_FILE);
+        $display("test_riscv_compl:  STARTING TEST: %s", MEM_INIT_FILE);
 
         i_data = 'd0;
         i_data_valid = 0;
@@ -71,6 +69,8 @@ module test_riscv_compl;
 
         reset = 1;
         clk = 0;
+
+        test_pass = 0;
 
         repeat (20) @(posedge clk);
         reset <= 0;
@@ -170,11 +170,15 @@ module test_riscv_compl;
                      dataw2, addrw2, bew2);
 
             if (addrw2 == 32'h8000_1000) begin
-                if (dataw2 == 32'h0000_0001)
+                if (dataw2 == 32'h0000_0001) begin
                     $display("TEST FINISHED!");
-                else
+                    test_pass = 1;
+                    $finish;
+                end
+                else begin
                     $display("TEST FAILED!!");
-                $finish;
+                    $stop;
+                end
             end
 
             if (addrw2[31] && addrw2[30 : 0] < MEM_SIZE) begin

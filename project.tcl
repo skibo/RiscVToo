@@ -40,6 +40,7 @@
 #    "./RiscVToo.srcs/sim_1/test_riscv_too.v"
 #    "./RiscVToo.srcs/sim_1/test_riscv_cpu.v"
 #    "./RiscVToo.srcs/testsw_1/test_too.mem"
+#    "./RiscVToo.srcs/testsw_1/test_timer.mem"
 #    "./RiscVToo.srcs/testsw_1/test2.mem"
 #    "./RiscVToo.srcs/testsw_1/test1.mem"
 #    "./RiscVToo.srcs/testsw_1/testcsr.mem"
@@ -218,6 +219,7 @@ set files [list \
  [file normalize "${origin_dir}/RiscVToo.srcs/sim_1/test_riscv_too.v"] \
  [file normalize "${origin_dir}/RiscVToo.srcs/sim_1/test_riscv_cpu.v"] \
  [file normalize "${origin_dir}/RiscVToo.srcs/testsw_1/test_too.mem"] \
+ [file normalize "${origin_dir}/RiscVToo.srcs/testsw_1/test_timer.mem"] \
  [file normalize "${origin_dir}/RiscVToo.srcs/testsw_1/test2.mem"] \
  [file normalize "${origin_dir}/RiscVToo.srcs/testsw_1/test1.mem"] \
  [file normalize "${origin_dir}/RiscVToo.srcs/testsw_1/testcsr.mem"] \
