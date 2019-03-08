@@ -171,12 +171,12 @@ module test_riscv_compl;
 
             if (addrw2 == 32'h8000_1000) begin
                 if (dataw2 == 32'h0000_0001) begin
-                    $display("TEST FINISHED!");
+                    $display("TEST PASSED! %s", MEM_INIT_FILE);
                     test_pass = 1;
                     $finish;
                 end
                 else begin
-                    $display("TEST FAILED!!");
+                    $display("TEST FAILED!! %s", MEM_INIT_FILE);
                     $stop;
                 end
             end

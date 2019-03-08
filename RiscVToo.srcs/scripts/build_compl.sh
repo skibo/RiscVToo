@@ -32,7 +32,7 @@ if [ ! -d $COMPLDIR ] ; then
    exit 1
 fi
 
-RISCV_PREFIX=$RISCV/bin/riscv64-unknown-elf-
+RISCV_PREFIX=$RISCV/bin/riscv32-unknown-elf-
 RISCV_GCC_OPTS="-march=rv32i -mabi=ilp32 -static -mcmodel=medany -fvisibility=hidden -nostdlib -nostartfiles"
 #BIN2HEX='/usr/bin/hexdump -v -e \'/4 "%08X\\n"\''
 # echo $BIN2HEX ; exit 1
