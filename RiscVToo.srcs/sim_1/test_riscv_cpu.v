@@ -83,8 +83,8 @@ module test_riscv_cpu;
     reg [31 : 0] dmem[(DMEM_SIZE / 4) - 1 : 0];
 
     initial begin
-        $display("test_riscv_cpu: Starting simulation with MEM_INIT_FILE=%s",
-                 MEM_INIT_FILE);
+        $display("test_riscv_cpu: MEM_INIT_FILE=%s DMEM_DELAYS=%d IMEM_DELAYS=%d",
+                 MEM_INIT_FILE, DMEM_DELAYS, IMEM_DELAYS);
         $readmemh(MEM_INIT_FILE, imem);
     end
 

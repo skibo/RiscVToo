@@ -2,9 +2,9 @@
 #
 #
 proc do_cpu_test {memfile {count 1} {delays 1}} {
-    set_property generic MEM_INIT_FILE="$memfile" [get_filesets sim_1]
-    set_property generic IMEM_DELAYS=$delays [get_filesets sim_1]
-    set_property generic DMEM_DELAYS=$delays [get_filesets sim_1]
+    set_property generic \
+        "MEM_INIT_FILE=\"$memfile\" IMEM_DELAYS=$delays DMEM_DELAYS=$delays" \
+        [get_filesets sim_1]
 
     launch_simulation
 
@@ -31,8 +31,8 @@ proc do_cpu_test {memfile {count 1} {delays 1}} {
 }
 
 proc do_too_test {memfile {count 1} {waitrange 0}} {
-    set_property generic MEM_INIT_FILE="$memfile" [get_filesets sim_1]
-    set_property generic WAITRANGE=$waitrange [get_filesets sim_1]
+    set_property generic "MEM_INIT_FILE=\"$memfile\" WAITRANGE=$waitrange" \
+        [get_filesets sim_1]
 
     launch_simulation
 

@@ -86,8 +86,8 @@ module test_riscv_too;
     reg                                 test_pass;
 
     initial begin
-        $display("test_riscv_too.v: Starting simulation with MEM_INIT_FILE=%s",
-                 MEM_INIT_FILE);
+        $display("test_riscv_too.v: MEM_INIT_FILE=%s WAITRANGE=%d",
+                 MEM_INIT_FILE, WAITRANGE);
 
         M_AXI_ACLK = 0;
         M_AXI_ARESETN = 0;
