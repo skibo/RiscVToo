@@ -37,5 +37,5 @@ endif
 $(TESTMEMFILES):
 	(cd $(SRCDIR)/testsw_1 ; $(MAKE))
 
-runtests: $(TESTMEMFILES)
+runtests: $(PROJFILE)
 	$(VIVADO) -mode batch -source $(SRCDIR)/scripts/runtests.tcl
