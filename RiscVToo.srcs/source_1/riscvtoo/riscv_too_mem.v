@@ -25,7 +25,6 @@
 // SUCH DAMAGE.
 //
 
-(* keep_hierarchy = "yes" *)
 module riscv_too_mem #(parameter integer DWIDTH = 32,
                        parameter integer MEMSIZE = 16384,
                        localparam integer AWIDTH = $clog2(MEMSIZE),
