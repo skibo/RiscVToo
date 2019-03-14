@@ -30,8 +30,8 @@ module test_riscv_cpu;
     parameter
         DMEM_SIZE = 256,
         IMEM_SIZE = 2048,
-        DMEM_DELAYS = 1,
-        IMEM_DELAYS = 1,
+        DMEM_DELAYS = 0,
+        IMEM_DELAYS = 0,
         MEM_INIT_FILE = "test1.mem",
         IBUS_VERBOSE = 0;
 
@@ -51,6 +51,7 @@ module test_riscv_cpu;
     reg             d_wr_done;
     reg             d_fault;
 
+    reg             timerint;
     reg             extirq;
 
     reg             reset;
@@ -66,6 +67,7 @@ module test_riscv_cpu;
         d_data_rd_valid = 0;
         d_fault = 0;
         d_wr_done = 1;
+        timerint = 0;
         extirq = 0;
 
         reset = 1;
@@ -294,6 +296,7 @@ module test_riscv_cpu;
                           .d_wr_done(d_wr_done),
                           .d_fault(d_fault),
 
+                          .timerint(timerint),
                           .extirq(extirq),
 
                           .reset(reset),
