@@ -101,6 +101,16 @@ _start:
         sw      s2, 28(zero)
         bne     s2, s3, fail
 
+        /* Swap quickly. */
+        csrrw   s2, mscratch, a2
+        csrrw   s3, mscratch, s2
+        csrrw   s2, mscratch, a1
+        csrr    s4, mscratch
+
+        bne     s3, a2, fail
+        bne     s2, a1, fail
+        bne     s4, a1, fail
+
         /* Clear some bits in scratch. */
         csrrc   s2, mscratch, 0xf
         sw      s2, 32(zero)
