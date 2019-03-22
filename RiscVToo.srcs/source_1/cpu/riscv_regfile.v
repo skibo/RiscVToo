@@ -35,9 +35,7 @@ module riscv_reg_file #(parameter DWIDTH = 32)
      input                   w_reg_en,
      input                   clk);
 
-`ifdef NORAM32X1D
-    //////// Behavioral model.
-    
+    (* ram_style = "distributed" *)
     reg [DWIDTH - 1 : 0]     regs[31 : 0];
 
     initial regs[0] = 'd0;
@@ -48,44 +46,5 @@ module riscv_reg_file #(parameter DWIDTH = 32)
     always @(posedge clk)
         if (w_reg_en)
             regs[w_reg_num] <= w_reg_data;
-`else /* !foo */
-    genvar i;
-    generate
-        for (i = 0; i < DWIDTH; i = i + 1) begin
-            RAM32X1D ram_a(.SPO(),
-                           .DPO(a_reg_data[i]),
-                           .A0(w_reg_num[0]),
-                           .A1(w_reg_num[1]),
-                           .A2(w_reg_num[2]),
-                           .A3(w_reg_num[3]),
-                           .A4(w_reg_num[4]),
-                           .D(w_reg_data[i]),
-                           .WE(w_reg_en),
-                           .DPRA0(a_reg_num[0]),
-                           .DPRA1(a_reg_num[1]),
-                           .DPRA2(a_reg_num[2]),
-                           .DPRA3(a_reg_num[3]),
-                           .DPRA4(a_reg_num[4]),
-                           .WCLK(clk));
-            
-            RAM32X1D ram_b(.SPO(),
-                           .DPO(b_reg_data[i]),
-                           .A0(w_reg_num[0]),
-                           .A1(w_reg_num[1]),
-                           .A2(w_reg_num[2]),
-                           .A3(w_reg_num[3]),
-                           .A4(w_reg_num[4]),
-                           .D(w_reg_data[i]),
-                           .WE(w_reg_en),
-                           .DPRA0(b_reg_num[0]),
-                           .DPRA1(b_reg_num[1]),
-                           .DPRA2(b_reg_num[2]),
-                           .DPRA3(b_reg_num[3]),
-                           .DPRA4(b_reg_num[4]),
-                           .WCLK(clk));
-            
-        end
-    endgenerate
-`endif
-    
+
 endmodule // riscv_reg_file
