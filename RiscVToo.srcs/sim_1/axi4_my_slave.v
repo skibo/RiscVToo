@@ -29,6 +29,7 @@ module axi4_my_slave # (
                         parameter integer C_S_AXI_ID_WIDTH = 1,
                         parameter integer C_S_AXI_ADDR_WIDTH = 32,
                         parameter integer C_S_AXI_DATA_WIDTH = 32,
+                        parameter [C_S_AXI_ADDR_WIDTH - 1 : 0] MEMBASE = 'h0,
                         parameter integer MEMSIZE = 8192,
                         parameter INIT_FILE = "",
                         parameter integer WAITRANGE = 1 // 0..15
@@ -116,7 +117,7 @@ module axi4_my_slave # (
 
             while (!S_AXI_ARVALID)
                 @(posedge clk);
-            $display("[%t] axi4_my_slave: Read Address: %h id=%h len=%h", $time,
+            $display("[%t] %m: Read Address: %h id=%h len=%h", $time,
                      S_AXI_ARADDR, S_AXI_ARID, S_AXI_ARLEN);
             id = S_AXI_ARID;
             len = S_AXI_ARLEN + 1;
@@ -130,16 +131,17 @@ module axi4_my_slave # (
                 repeat (r) @(posedge clk);
                 S_AXI_RVALID <= 1'b1;
                 S_AXI_RLAST <= (i == len - 1);
-                if (addr < MEMSIZE)
-                    S_AXI_RDATA <= mem[addr / (C_S_AXI_DATA_WIDTH / 8)];
+                if (addr >= MEMBASE && addr < MEMBASE + MEMSIZE)
+                    S_AXI_RDATA <= mem[(addr - MEMBASE) /
+                                       (C_S_AXI_DATA_WIDTH / 8)];
                 else
                     S_AXI_RDATA <= S_AXI_RDATA + 1'b1;
-                S_AXI_RRESP <= {addr == 'hdead0, 1'b0};
+                S_AXI_RRESP <= {addr[31 : 0] == 32'hdead0, 1'b0};
                 addr = addr + (C_S_AXI_DATA_WIDTH / 8);
                 @(posedge clk);
                 while (!S_AXI_RREADY)
                        @(posedge clk);
-                $display("[%t] axi4_my_slave: Read Data: %h", $time, S_AXI_RDATA);
+                $display("[%t] %m: Read Data: %h", $time, S_AXI_RDATA);
                 S_AXI_RVALID <= 1'b0;
                 S_AXI_RRESP <= 2'bxx;
             end
@@ -181,7 +183,7 @@ module axi4_my_slave # (
                     while (!S_AXI_AWVALID)
                         @(posedge clk);
 
-                    $display("[%t] axi4_my_slave: Got write address 0x%h id=0x%h len=0x%h", $time,
+                    $display("[%t] %m: Got write address 0x%h id=0x%h len=0x%h", $time,
                              S_AXI_AWADDR, S_AXI_AWID, S_AXI_AWLEN);
                     addr = S_AXI_AWADDR;
                     id = S_AXI_AWID;
@@ -202,27 +204,30 @@ module axi4_my_slave # (
                         while (!S_AXI_WVALID)
                             @(posedge clk);
                         if (!gotaddr) begin
-                            $display("[%t] axi4_my_slave: Write data came before address!", $time);
+                            $display("[%t] %m: Write data came before address!", $time);
                             $stop;
                         end
-                        $display("[%t] axi4_my_slave: Data written: %h strb=%b", $time, S_AXI_WDATA, S_AXI_WSTRB);
-                        if (addr < MEMSIZE) begin
-                            data = mem[addr / (C_S_AXI_DATA_WIDTH / 8)];
+                        $display("[%t] %m: Data written: %h strb=%b", $time, S_AXI_WDATA, S_AXI_WSTRB);
+                        if (addr >= MEMBASE && addr < MEMBASE + MEMSIZE) begin
+                            data = mem[(addr - MEMBASE) /
+                                       (C_S_AXI_DATA_WIDTH / 8)];
                             for (j = 0; j < C_S_AXI_DATA_WIDTH; j = j + 1)
                                 if (S_AXI_WSTRB[j / 8])
                                     data[j] = S_AXI_WDATA[j];
-                            mem[addr / (C_S_AXI_DATA_WIDTH / 8)] = data;
+                            mem[(addr - MEMBASE) /
+                                (C_S_AXI_DATA_WIDTH / 8)] = data;
                         end
                         addr = addr + (C_S_AXI_DATA_WIDTH / 8);
                         islast = S_AXI_WLAST;
                         i = i + 1;
-                        @(posedge clk);
                         S_AXI_WREADY <= 1'b0;
                     end
                     if (i != len) begin
-                        $display("[%t] axi4_my_slave: Did not get expect number of words len=%d", $time, len);
+                        $display("[%t] %m: unexpect num words: got %d len=%d",
+                                 $time, i, len);
                         $stop;
                     end
+                    @(posedge clk);
                     gotaddr = 0;
                 end
             join
