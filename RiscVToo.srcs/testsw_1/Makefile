@@ -1,13 +1,14 @@
 
-ifndef RISCV
-$(error RISCV must be set to point to RiscV toolchain)
+# Point $RISCV at your local copy of GNU embedded toolchain.
+ifdef RISCV
+CROSS_COMPILE=$(RISCV)/bin/riscv64-unknown-elf-
+else
+CROSS_COMPILE=riscv64-unknown-elf-
 endif
 
-ifneq (,$(wildcard $(RISCV)/bin/riscv32-unknown-elf-gcc))
-	CROSS_COMPILE=$(RISCV)/bin/riscv32-unknown-elf-
-else
-	CROSS_COMPILE=$(RISCV)/bin/riscv64-unknown-linux-gnu-
-endif
+AFLAGS=-march=rv32i
+LFLAGS=-melf32lriscv -static -T ldscript.riscv
+
 BIN2HEX=/usr/bin/hexdump -v -e '/4 "%08X\n"'
 
 TESTS=test1 test2 test3 testcsr test_too test_timer
@@ -16,9 +17,6 @@ TARGETS=$(TESTS:=.lst) $(TESTS:=.mem)
 OBJS=$(TESTS:=.o)
 BINS=$(TESTS:=.bin)
 ELFS=$(TESTS:=.elf)
-
-AFLAGS=-march=rv32i
-LFLAGS=-melf32lriscv -static -T ldscript.riscv
 
 default: $(TARGETS)
 

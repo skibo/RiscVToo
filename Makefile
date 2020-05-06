@@ -9,9 +9,6 @@ SRCDIR=$(PROJNAME).srcs
 ifndef XILINX_VIVADO
 $(error XILINX_VIVADO must be set to point to Xilinx tools)
 endif
-ifndef RISCV
-$(error RISCV must be set to point to RiscV toolchain)
-endif
 
 VIVADO=$(XILINX_VIVADO)/bin/vivado
 
