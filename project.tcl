@@ -36,7 +36,7 @@
 #    "./RiscVToo.srcs/source_1/riscvtoo/riscv_too_mem.v"
 #    "./RiscVToo.srcs/source_1/riscvtoo/riscv_too.v"
 #    "./component.xml"
-#    "./RiscVToo.srcs/sim_1/axi4_my_slave.v"
+#    "./RiscVToo.srcs/sim_1/axi4_my_s.v"
 #    "./RiscVToo.srcs/sim_1/test_riscv_too.v"
 #    "./RiscVToo.srcs/sim_1/test_riscv_cpu.v"
 #    "./RiscVToo.srcs/sim_1/test_riscv_compl.v"
@@ -216,7 +216,7 @@ if {[string equal [get_filesets -quiet sim_1] ""]} {
 # Set 'sim_1' fileset object
 set obj [get_filesets sim_1]
 set files [list \
- [file normalize "${origin_dir}/RiscVToo.srcs/sim_1/axi4_my_slave.v"] \
+ [file normalize "${origin_dir}/RiscVToo.srcs/sim_1/axi4_my_s.v"] \
  [file normalize "${origin_dir}/RiscVToo.srcs/sim_1/test_riscv_too.v"] \
  [file normalize "${origin_dir}/RiscVToo.srcs/sim_1/test_riscv_cpu.v"] \
  [file normalize "${origin_dir}/RiscVToo.srcs/sim_1/test_riscv_compl.v"] \

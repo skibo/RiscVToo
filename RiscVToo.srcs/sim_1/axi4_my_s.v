@@ -25,14 +25,14 @@
 // SUCH DAMAGE.
 //
 
-module axi4_my_slave # (
-                        parameter integer C_S_AXI_ID_WIDTH = 1,
-                        parameter integer C_S_AXI_ADDR_WIDTH = 32,
-                        parameter integer C_S_AXI_DATA_WIDTH = 32,
-                        parameter [C_S_AXI_ADDR_WIDTH - 1 : 0] MEMBASE = 'h0,
-                        parameter integer MEMSIZE = 8192,
-                        parameter INIT_FILE = "",
-                        parameter integer WAITRANGE = 1 // 0..15
+module axi4_my_s #(
+                   parameter integer C_S_AXI_ID_WIDTH = 1,
+                   parameter integer C_S_AXI_ADDR_WIDTH = 32,
+                   parameter integer C_S_AXI_DATA_WIDTH = 32,
+                   parameter [C_S_AXI_ADDR_WIDTH - 1 : 0] MEMBASE = 'h0,
+                   parameter integer MEMSIZE = 8192,
+                   parameter INIT_FILE = "",
+                   parameter integer WAITRANGE = 1 // 0..15
                         ) (
                         input                                 S_AXI_ACLK,
                         input                                 S_AXI_ARESETN,
@@ -245,4 +245,4 @@ module axi4_my_slave # (
     end // block: writes
 
 
-endmodule // axi4_my_slave
+endmodule // axi4_my_s

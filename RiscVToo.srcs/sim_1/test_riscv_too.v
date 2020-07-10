@@ -38,7 +38,7 @@ module test_riscv_too;
     parameter integer C_M00_AXI_BUSER_WIDTH = 0;
 
     parameter MEM_INIT_FILE = "test_too.mem";
-    parameter WAITRANGE = 1; // 0..15 (passed on to axi4_my_slave
+    parameter WAITRANGE = 1; // 0..15 (passed on to axi4_my_s
 
     reg               M_AXI_ACLK;
     reg               M_AXI_ARESETN;
@@ -146,9 +146,9 @@ module test_riscv_too;
         .extirq(extirq)
     );
 
-    axi4_my_slave #(.MEMSIZE(32768),
-                    .WAITRANGE(WAITRANGE))
-    axi4_my_slave_0(
+    axi4_my_s #(.MEMSIZE(32768),
+                .WAITRANGE(WAITRANGE))
+    axi4_my_s_0(
                                   .S_AXI_ACLK(M_AXI_ACLK),
                                   .S_AXI_ARESETN(M_AXI_ARESETN),
                                   .S_AXI_ARADDR(M_AXI_ARADDR),
