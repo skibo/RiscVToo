@@ -210,7 +210,7 @@ module riscv_too_glue #(
     // AXI State machines handle data reads and writes one word at a time.
 
     // AXI Read state machine.
-    parameter [1 : 0]
+    localparam [1 : 0]
         RSM_IDLE =      2'd0,
         RSM_RADDR =     2'd1,
         RSM_RDATA =     2'd2;
@@ -264,7 +264,7 @@ module riscv_too_glue #(
         end
 
     // AXI Write state machine.
-    parameter [1 : 0]
+    localparam [1 : 0]
         WSM_IDLE =      2'd0,
         WSM_WADDR =     2'd1,
         WSM_WDATA =     2'd2,

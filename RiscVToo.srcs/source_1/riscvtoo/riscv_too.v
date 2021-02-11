@@ -93,6 +93,7 @@ module riscv_too #(
     localparam
         AWIDTH = 32,
         DWIDTH = 32,
+        MEM_AWIDTH = $clog2(MEMSIZE),
         LOCIO_AWIDTH = 8;
 
     // Convenience signal names.
@@ -157,12 +158,12 @@ module riscv_too #(
                     .MEM_INIT_FILE(MEM_INIT_FILE))
     riscv_too_mem_0(
                     // Instruction port
-                    .i_addr(i_addr),
+                    .i_addr(i_addr[MEM_AWIDTH - 1 : 0]),
                     .i_addr_valid(i_addr_valid),
                     .i_data(i_data),
 
                     // Data port
-                    .d_addr(d_addr),
+                    .d_addr(d_addr[MEM_AWIDTH - 1 : 0]),
                     .d_addr_valid(d_addr_valid),
                     .d_data_rd(d_data_rd_mem),
                     .d_data_wr(d_data_wr),
@@ -190,7 +191,8 @@ module riscv_too #(
     riscv_too_glue #(.AWIDTH(AWIDTH),
                      .DWIDTH(DWIDTH),
                      .MEMSIZE(MEMSIZE),
-                     .ROMSIZE(ROMSIZE))
+                     .ROMSIZE(ROMSIZE),
+                     .LOCIO_AWIDTH(LOCIO_AWIDTH))
 
     riscv_too_glue_0(
              // AXI master interface
