@@ -29,7 +29,7 @@ module test_riscv_compl;
 
     parameter
         MEM_SIZE = 32768,
-        MEM_INIT_FILE = "xxx",	// Must be set externally.
+        MEM_INIT_FILE = "xxx",  // Must be set externally.
         IBUS_VERBOSE = 0;
 
     wire [31 : 0]   i_addr;

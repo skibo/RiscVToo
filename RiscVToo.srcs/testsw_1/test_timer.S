@@ -25,98 +25,98 @@
  */
 
 /* test_timer.S:  test timer interrupts. */
-        .text
-        . = 0x1c0
+	.text
+	. = 0x1c0
 exception:
-        j       _except
+	j	_except
 
-        . = 0x200
-        .global _start
+	. = 0x200
+	.global _start
 _start:
-        /* Set timecmp and enable interrupt. */
-        li      t0, 0x300
-        li      t1, 0x20000
-        sw      zero, 12(t1)
-        sw      t0, 8(t1)
+	/* Set timecmp and enable interrupt. */
+	li	t0, 0x300
+	li	t1, 0x20000
+	sw	zero, 12(t1)
+	sw	t0, 8(t1)
 
-        /* Enable interrupt. */
-        li      t0, 1 << 7
-        csrs    mie, t0
-        csrsi   mstatus, 8
+	/* Enable interrupt. */
+	li	t0, 1 << 7
+	csrs	mie, t0
+	csrsi	mstatus, 8
 
-        /* Do loads of AXI. */
-        li      t1, 0x4000
-        li      t2, 0xabcd
-        sw      t2, 0(t1)
+	/* Do loads of AXI. */
+	li	t1, 0x4000
+	li	t2, 0xabcd
+	sw	t2, 0(t1)
 1:
-        lw      t0, 0(t1)
-        nop
-        nop
-        beq     t0, t2, 1b
+	lw	t0, 0(t1)
+	nop
+	nop
+	beq	t0, t2, 1b
 
-        /* Huh?  Read value corrupted. */
+	/* Huh?	 Read value corrupted. */
 fail:
-        li      s0, 1
-        li      s1, 0xf0000
-        sw      s0, 0(s1)
+	li	s0, 1
+	li	s1, 0xf0000
+	sw	s0, 0(s1)
 1:
-        j       1b
+	j	1b
 
 pass:
-        li      s0, 2
-        li      s1, 0xf0000
-        sw      s0, 0(s1)
+	li	s0, 2
+	li	s1, 0xf0000
+	sw	s0, 0(s1)
 1:
-        j       1b
+	j	1b
 
 _except:
-        /* Save regs. */
-        csrw    mscratch, t0
-        la      t0, rsave
-        sw      t1, 4(t0)
-        sw      t2, 8(t0)
-        sw      t3, 12(t0)
-        csrr    t1, mscratch
-        sw      t1, 0(t0)
+	/* Save regs. */
+	csrw	mscratch, t0
+	la	t0, rsave
+	sw	t1, 4(t0)
+	sw	t2, 8(t0)
+	sw	t3, 12(t0)
+	csrr	t1, mscratch
+	sw	t1, 0(t0)
 
-        csrr    t0, mcause
-        bge     t0, zero, notint
+	csrr	t0, mcause
+	bge	t0, zero, notint
 
-        /* Check reason. */
-        and     t0, t0, 15
-        li      t1, 7
-        bne     t0, t1, fail
+	/* Check reason. */
+	and	t0, t0, 15
+	li	t1, 7
+	bne	t0, t1, fail
 
-        /* Check mtip. */
-        csrr    t0, mip
-        andi    t0, t0, 1 << 7
-        beq     t0, zero, fail
+	/* Check mtip. */
+	csrr	t0, mip
+	andi	t0, t0, 1 << 7
+	beq	t0, zero, fail
 
-        /* New timer value.  Stop test timer >= 0x4000 */
-        li      t0, 0x20000
+	/* New timer value.  Stop test timer >= 0x4000 */
+	li	t0, 0x20000
 1:
-        lw      t1, 0(t0)
-        srli    t2, t1, 14
-        bne     t2, zero, pass
-        addi    t1, t1, 127
-        sw      t1, 8(t0)
+	lw	t1, 0(t0)
+	srli	t2, t1, 14
+	bne	t2, zero, pass
+	addi	t1, t1, 127
+	sw	t1, 8(t0)
 
-        /* Restore regs. */
-        la      t0, rsave
-        lw      t1, 4(t0)
-        lw      t2, 8(t0)
-        lw      t3, 12(t0)
-        lw      t0, 0(t0)
-        mret
+	/* Restore regs. */
+	la	t0, rsave
+	lw	t1, 4(t0)
+	lw	t2, 8(t0)
+	lw	t3, 12(t0)
+	lw	t0, 0(t0)
+	mret
 
 notint:
-        csrr    t0, mstatus
-        csrr    t1, mepc
-        j       fail
+	csrr	t0, mstatus
+	csrr	t1, mepc
+	j	fail
 
-        .data
+	.data
 rsave:
-        .word   0
-        .word   0
-        .word   0
-        .word   0
+	.word	0
+	.word	0
+	.word	0
+	.word	0

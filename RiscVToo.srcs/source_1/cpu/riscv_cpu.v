@@ -35,7 +35,7 @@ module riscv_cpu #(parameter DWIDTH = 32,
      input [31 : 0]                i_data,
      input                         i_data_valid,
      input                         i_fault,
-               
+
      output [AWIDTH - 1 : 0]       d_addr,
      output                        d_addr_valid,
      input [DWIDTH - 1 : 0]        d_data_rd,
@@ -52,12 +52,12 @@ module riscv_cpu #(parameter DWIDTH = 32,
      input                         reset,
      input                         clk);
 
-    
+
     wire [1 : 0]                       csr_op;
     wire [11 : 0]                      csr_reg;
     wire [DWIDTH - 1 : 0]              csr_wr_data;
     wire [DWIDTH - 1 : 0]              csr_rd_data;
-    
+
     wire                               inc_instret;
     wire                               do_exception;
     wire                               do_mret;
@@ -69,7 +69,7 @@ module riscv_cpu #(parameter DWIDTH = 32,
     wire [AWIDTH - 1 : 0]              exc_pc;
     wire [AWIDTH - 1 : 0]              mret_pc;
     wire [AWIDTH - 1 : 0]              mtvec;
-    
+
     riscv_core #(.AWIDTH(AWIDTH),
                  .DWIDTH(DWIDTH),
                  .RSTVEC(RSTVEC))
@@ -79,7 +79,7 @@ module riscv_cpu #(parameter DWIDTH = 32,
                  .i_data(i_data),
                  .i_data_valid(i_data_valid),
                  .i_fault(i_fault),
-        
+
                  .d_addr(d_addr),
                  .d_addr_valid(d_addr_valid),
                  .d_data_rd(d_data_rd),
@@ -89,12 +89,12 @@ module riscv_cpu #(parameter DWIDTH = 32,
                  .d_be(d_be),
                  .d_wr_done(d_wr_done),
                  .d_fault(d_fault),
-        
+
                  .csr_op(csr_op),
                  .csr_reg(csr_reg),
                  .csr_wr_data(csr_wr_data),
                  .csr_rd_data(csr_rd_data),
-        
+
                  .inc_instret(inc_instret),
                  .do_exception(do_exception),
                  .exc_reason(exc_reason),
@@ -106,7 +106,7 @@ module riscv_cpu #(parameter DWIDTH = 32,
                  .mret_pc(mret_pc),
                  .mtvec(mtvec),
                  .interrupt(interrupt),
-        
+
                  .reset(reset),
                  .clk(clk)
             );
@@ -120,7 +120,7 @@ module riscv_cpu #(parameter DWIDTH = 32,
                 .csr_reg(csr_reg),
                 .csr_wr_data(csr_wr_data),
                 .csr_rd_data(csr_rd_data),
-        
+
                 .inc_instret(inc_instret),
                 .do_exception(do_exception),
                 .exc_reason(exc_reason),
@@ -134,9 +134,9 @@ module riscv_cpu #(parameter DWIDTH = 32,
                 .timerint(timerint),
                 .extirq(extirq),
                 .mret_pc(mret_pc),
-        
+
                 .reset(reset),
                 .clk(clk)
           );
-    
+
 endmodule // riscv_cpu

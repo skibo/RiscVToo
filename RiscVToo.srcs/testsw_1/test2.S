@@ -24,127 +24,126 @@
  * SUCH DAMAGE.
  */
 
-        /* Check endianness, byte and half loads and stores. */
-        .text
+	/* Check endianness, byte and half loads and stores. */
+	.text
 	. = 0x1c0
 exception:
-        /* Ooops! */
-        li      a0, 0xf00
-        li      t0, 1111
-        sw      t0, 0(a0)
+	/* Ooops! */
+	li	a0, 0xf00
+	li	t0, 1111
+	sw	t0, 0(a0)
 1:
-        j       1b
-        nop
-        
+	j	1b
+	nop
+
 	. = 0x200
 	.global _start
 _start:
-        li      t0, 0x88888888
-        li      t1, 0x1234
-        li      a0, 8
-        li      a1, 0x0000	/* base address. */
+	li	t0, 0x88888888
+	li	t1, 0x1234
+	li	a0, 8
+	li	a1, 0x0000	/* base address. */
 
-        sw      t0, 16(a1)	/* Store 0x88888888 to 0x10. */
+	sw	t0, 16(a1)	/* Store 0x88888888 to 0x10. */
 
-        /* Test byte stores. */
-        sb      t1, 16(a1)
-        lw      t2, 16(a1)
-        li      t3, 0x88888834
-        bne     t3, t2, fail
+	/* Test byte stores. */
+	sb	t1, 16(a1)
+	lw	t2, 16(a1)
+	li	t3, 0x88888834
+	bne	t3, t2, fail
 
-        sb      t1, 17(a1)
-        lw      t2, 16(a1)
-        li      t3, 0x88883434
-        bne     t3, t2, fail
+	sb	t1, 17(a1)
+	lw	t2, 16(a1)
+	li	t3, 0x88883434
+	bne	t3, t2, fail
 
-        sb      t1, 18(a1)
-        lw      t2, 16(a1)
-        li      t3, 0x88343434
-        bne     t3, t2, fail
+	sb	t1, 18(a1)
+	lw	t2, 16(a1)
+	li	t3, 0x88343434
+	bne	t3, t2, fail
 
-        sb      t1, 19(a1)
-        lw      t2, 16(a1)
-        li      t3, 0x34343434
-        bne     t3, t2, fail
+	sb	t1, 19(a1)
+	lw	t2, 16(a1)
+	li	t3, 0x34343434
+	bne	t3, t2, fail
 
-        /* Test half stores. */
-        li      t1, 0x55667788
-        sh      t1, 16(a1)
-        lw      t2, 16(a1)
-        li      t3, 0x34347788
-        bne     t3, t2, fail
+	/* Test half stores. */
+	li	t1, 0x55667788
+	sh	t1, 16(a1)
+	lw	t2, 16(a1)
+	li	t3, 0x34347788
+	bne	t3, t2, fail
 
-        sh      t1, 18(a1)
-        lw      t2, 16(a1)
-        li      t3, 0x77887788
-        bne     t2, t3, fail
+	sh	t1, 18(a1)
+	lw	t2, 16(a1)
+	li	t3, 0x77887788
+	bne	t2, t3, fail
 
-        /* Test byte loads, signed and unsigned. */
-        li      t1, 0x8899aabb
-        sw      t1, 16(a1)
+	/* Test byte loads, signed and unsigned. */
+	li	t1, 0x8899aabb
+	sw	t1, 16(a1)
 
-        lb      t2, 16(a1)
-        li      t3, 0xffffffbb
-        bne     t2, t3, fail
+	lb	t2, 16(a1)
+	li	t3, 0xffffffbb
+	bne	t2, t3, fail
 
-        lbu     t2, 16(a1)
-        li      t3, 0xbb
-        bne     t2, t3, fail
+	lbu	t2, 16(a1)
+	li	t3, 0xbb
+	bne	t2, t3, fail
 
-        lb      t2, 17(a1)
-        li      t3, 0xffffffaa
-        bne     t2, t3, fail
+	lb	t2, 17(a1)
+	li	t3, 0xffffffaa
+	bne	t2, t3, fail
 
-        lbu     t2, 17(a1)
-        li      t3, 0xaa
-        bne     t2, t3, fail
+	lbu	t2, 17(a1)
+	li	t3, 0xaa
+	bne	t2, t3, fail
 
-        lb      t2, 18(a1)
-        li      t3, 0xffffff99
-        bne     t2, t3, fail
+	lb	t2, 18(a1)
+	li	t3, 0xffffff99
+	bne	t2, t3, fail
 
-        lbu     t2, 18(a1)
-        li      t3, 0x99
-        bne     t2, t3, fail
+	lbu	t2, 18(a1)
+	li	t3, 0x99
+	bne	t2, t3, fail
 
-        lb      t2, 19(a1)
-        li      t3, 0xffffff88
-        bne     t2, t3, fail
+	lb	t2, 19(a1)
+	li	t3, 0xffffff88
+	bne	t2, t3, fail
 
-        lbu     t2, 19(a1)
-        li      t3, 0x88
-        bne     t2, t3, fail
+	lbu	t2, 19(a1)
+	li	t3, 0x88
+	bne	t2, t3, fail
 
-        /* Test half loads, signed and unsigned. */
-        lh      t2, 16(a1)
-        li      t3, 0xffffaabb
-        bne     t2, t3, fail
+	/* Test half loads, signed and unsigned. */
+	lh	t2, 16(a1)
+	li	t3, 0xffffaabb
+	bne	t2, t3, fail
 
-        lhu     t2, 16(a1)
-        li      t3, 0xaabb
-        bne     t2, t3, fail
+	lhu	t2, 16(a1)
+	li	t3, 0xaabb
+	bne	t2, t3, fail
 
-        lh      t2, 18(a1)
-        li      t3, 0xffff8899
-        bne     t2, t3, fail
+	lh	t2, 18(a1)
+	li	t3, 0xffff8899
+	bne	t2, t3, fail
 
-        lhu     t2, 18(a1)
-        li      t3, 0x8899
-        bne     t2, t3, fail
+	lhu	t2, 18(a1)
+	li	t3, 0x8899
+	bne	t2, t3, fail
 
-        /* Pass! */
-        li      a0, 0xf00
-        li      t0, 2
-        sw      t0, 0(a0)
+	/* Pass! */
+	li	a0, 0xf00
+	li	t0, 2
+	sw	t0, 0(a0)
 1:
-        j       1b
+	j	1b
 
-fail:   
-        /* Fail! */
-        li      a0, 0xf00
-        li      t0, 1
-        sw      t0, 0(a0)
-1:      
-        j       1b
-        nop
-
+fail:
+	/* Fail! */
+	li	a0, 0xf00
+	li	t0, 1
+	sw	t0, 0(a0)
+1:
+	j	1b
+	nop
