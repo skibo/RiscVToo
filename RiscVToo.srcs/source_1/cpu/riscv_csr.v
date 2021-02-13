@@ -116,7 +116,8 @@ module riscv_csr #(parameter DWIDTH = 32,
     // RDCYCLE registers
     reg [DWIDTH - 1 : 0]         cycle_reg;
     reg [DWIDTH - 1 : 0]         cycleh_reg;
-    wire                         cycle_c = cycle_reg == {DWIDTH{1'b1}};
+    reg                          cycle_c;
+
     always @(posedge clk)
         if (reset)
             cycle_reg <= 'd0;
@@ -124,6 +125,12 @@ module riscv_csr #(parameter DWIDTH = 32,
             cycle_reg <= ((cycle_reg + 1'b1) & ~csr_bits_clr) | csr_bits_set;
         else
             cycle_reg <= cycle_reg + 1'b1;
+
+    always @(posedge clk)
+        if (reset)
+            cycle_c <= 0;
+        else
+            cycle_c <= cycle_reg == {DWIDTH{1'b1}};
 
     always @(posedge clk)
         if (reset)
@@ -137,8 +144,8 @@ module riscv_csr #(parameter DWIDTH = 32,
     // RDINSTRET registers
     reg [DWIDTH - 1 : 0]         instret_reg;
     reg [DWIDTH - 1 : 0]         instreth_reg;
-    wire                         instret_c = inc_instret &&
-                                 instret_reg == {DWIDTH{1'b1}};
+    reg                          instret_c;
+
     always @(posedge clk)
         if (reset)
             instret_reg <= 'd0;
@@ -147,6 +154,12 @@ module riscv_csr #(parameter DWIDTH = 32,
                            csr_bits_set;
         else
             instret_reg <= instret_reg + inc_instret;
+
+    always @(posedge clk)
+        if (reset)
+            instret_c <= 0;
+        else
+            instret_c <= inc_instret && instret_reg == {DWIDTH{1'b1}};
 
     always @(posedge clk)
         if (reset)
