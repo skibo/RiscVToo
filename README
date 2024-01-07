@@ -1,0 +1,68 @@
+RiscVToo
+--------
+
+A bare-bones, not well-tested RV32I Risc-V cpu with a small local ROM/RAM
+and a simple AXI master interface.  It is packaged for use in Vivado.
+
+The configurable options are the following:
+
+        MEMSIZE (default 16K, max 128K)
+                 This is the size of the local ROM/RAM.  This should be
+                 power of 2.  The local ROM/RAM is located starting at
+                 address 0 (see below).
+
+        ROMSIZE: (default 8K, must be less than MEMSIZE):
+                 The first ROMSIZE bytes in the local ROM/RAM are read-only.
+                 This protects boot code from being accidentally altered and
+                 increases the chance the cpu can be properly soft reset
+                 without reprogramming the FPGA.
+
+                 Although ROMSIZE can be any value less than or equal to
+                 MEMSIZE, it is optimal if it is a small multiple of a
+                 large power of 2.  For example 0x1000, 0xC000, etc.  This
+                 makes it simpler for hardware to make address comparisons.
+
+        MEM_INIT_FILE: (default "bootrom.hex")
+                 A hex file to initialize the local ROM/RAM.
+
+        HART_ID: (default 00000):
+                 This is the hart ID of this cpu.  The cpu accesses this by
+                 reading the mhartid CSR.
+
+Address lay-out seen by cpu:
+
+0x00000000	+------------+
+                |            |
+                | local ROM  |
+                |            |
+ROMSIZE		+------------+
+                |            |
+                | local RAM  |
+                |            |
+MEMSIZE		+------------+
+                |            |
+                +============+  <--- mtime, mtimecmp regs, (0x20000-0x2ffff)
+                |            |
+                | external   |
+                | AXI access |
+                |            |
+                |            |
+                |            |
+0xffffffff	+------------+
+
+All reads and writes to the AXI access addresses are converted to single
+32-bit word accesses to the AXI master.  Byte enables are supported.
+
+The address range 0x20000-0x2ffff is carved out of AXI space for a
+local I/O" module which implements the required mtime and mtimecmp registers.
+
+The cpu does not implement any memory management.  The implementation of the
+v1.10 Privileged Architecture is pretty sketchy too.  Only the M (Machine)
+privilege level is implemented.
+
+Use at your own risk!
+
+January, 2018
+Updated February, 2019
+
+Thomas@Skibo.net

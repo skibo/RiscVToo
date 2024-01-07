@@ -1,0 +1,22 @@
+OUTPUT_ARCH(riscv)
+ENTRY(_start)
+SECTIONS
+{
+	. = 0x0000;
+	.text :
+	{
+		*(.text)
+		. = ALIGN(4);
+		*(.rodata)
+		. = ALIGN(4);
+	}
+
+	. = 0x2000;
+	.data :
+	{
+		*(.data)
+		. = ALIGN(4);
+		*(.bss)
+		. = ALIGN(4);
+	}
+}
